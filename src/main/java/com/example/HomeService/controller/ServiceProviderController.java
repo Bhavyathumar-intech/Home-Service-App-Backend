@@ -48,11 +48,11 @@ public class ServiceProviderController {
         }
     }
 
-    //    @PostMapping
-    //    public ResponseEntity<ServiceProvider> registerServiceProvider(@RequestBody ServiceProvider serviceProvider) {
-    //        ServiceProvider createdProvider = serviceProviderService.registerServiceProvider(serviceProvider);
-    //        return ResponseEntity.ok(createdProvider);
-    //    }
+        //    @PostMapping
+        //    public ResponseEntity<ServiceProvider> registerServiceProvider(@RequestBody ServiceProvider serviceProvider) {
+        //        ServiceProvider createdProvider = serviceProviderService.registerServiceProvider(serviceProvider);
+        //        return ResponseEntity.ok(createdProvider);
+        //    }
 
     /**
      * Retrieves all service providers.
