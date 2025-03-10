@@ -21,7 +21,11 @@ public class ServiceProviderController {
         this.serviceProviderService = serviceProviderService;
     }
 
-    // ✅ Updated: Register a new service provider with optional `imageUrl`
+    /**
+     * Registers a new service provider with optional `imageUrl`.
+     * @param requestData A map containing userId, companyName, experienceYears, address, and an optional imageUrl.
+     * @return ResponseEntity containing the registered service provider or an error message.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerServiceProvider(@RequestBody Map<String, Object> requestData) {
         try {
@@ -44,45 +48,62 @@ public class ServiceProviderController {
         }
     }
 
-//    @PostMapping
-//    public ResponseEntity<ServiceProvider> registerServiceProvider(@RequestBody ServiceProvider serviceProvider) {
-//        ServiceProvider createdProvider = serviceProviderService.registerServiceProvider(serviceProvider);
-//        return ResponseEntity.ok(createdProvider);
-//    }
+    //    @PostMapping
+    //    public ResponseEntity<ServiceProvider> registerServiceProvider(@RequestBody ServiceProvider serviceProvider) {
+    //        ServiceProvider createdProvider = serviceProviderService.registerServiceProvider(serviceProvider);
+    //        return ResponseEntity.ok(createdProvider);
+    //    }
 
-
-    // Get all service providers
+    /**
+     * Retrieves all service providers.
+     * @return ResponseEntity containing a list of all service providers.
+     */
     @GetMapping
     public ResponseEntity<List<ServiceProvider>> getAllServiceProviders() {
         return ResponseEntity.ok(serviceProviderService.getAllServiceProviders());
     }
 
-    // Get service provider by ID
+    /**
+     * Retrieves a service provider by ID.
+     * @param id The ID of the service provider.
+     * @return ResponseEntity containing the service provider details.
+     */
     @GetMapping("/{id}")
     public ResponseEntity<ServiceProvider> getServiceProviderById(@PathVariable Long id) {
         return ResponseEntity.ok(serviceProviderService.getServiceProviderById(id));
     }
 
-    // Get service provider by User ID
+    /**
+     * Retrieves a service provider by User ID.
+     * @param userId The User ID linked to the service provider.
+     * @return ResponseEntity containing the service provider details.
+     */
     @GetMapping("/user/{userId}")
     public ResponseEntity<Optional<ServiceProvider>> getServiceProviderByUserId(@PathVariable Long userId) {
         return ResponseEntity.ok(serviceProviderService.getServiceProviderByUserId(userId));
     }
 
-    // Get service provider by Company Name
+    /**
+     * Retrieves a service provider by Company Name.
+     * @param companyName The name of the company.
+     * @return ResponseEntity containing the service provider details.
+     */
     @GetMapping("/company")
     public ResponseEntity<Optional<ServiceProvider>> getServiceProviderByCompanyName(@RequestParam String companyName) {
         return ResponseEntity.ok(serviceProviderService.getServiceProviderByCompanyName(companyName));
     }
 
-    // Get time since provider joined
-    @GetMapping("/{id}/time-since-joined")
-    public ResponseEntity<String> getTimeSinceJoined(@PathVariable Long id) {
-        return ResponseEntity.ok(serviceProviderService.getTimeSinceJoined(id));
-    }
+    //    // Get time since provider joined
+    //    @GetMapping("/{id}/time-since-joined")
+    //    public ResponseEntity<String> getTimeSinceJoined(@PathVariable Long id) {
+    //        return ResponseEntity.ok(serviceProviderService.getTimeSinceJoined(id));
+    //    }
 
-    // FrontEnd will send ProviderID from JwtToken for Delete request
-    // Delete a service provider by serviceProviderId in Json Obj format
+    /**
+     * Deletes a service provider by serviceProviderId provided in a JSON object.
+     * @param requestBody A JSON object containing the serviceProviderId.
+     * @return ResponseEntity with a success or error message.
+     */
     @DeleteMapping("/delete")
     public ResponseEntity<String> deleteServiceProvider(@RequestBody Map<String, Long> requestBody) {
         Long providerId = requestBody.get("serviceProviderId"); // Extracting 'serviceProviderId' instead of 'providerId'
@@ -97,6 +118,11 @@ public class ServiceProviderController {
         return ResponseEntity.ok("Service Provider deleted successfully");
     }
 
+    /**
+     * Updates an existing service provider.
+     * @param serviceProvider The service provider object with updated details.
+     * @return ResponseEntity with a success message.
+     */
     @PutMapping("/update")
     public ResponseEntity<String> updateServiceProvider(@RequestBody ServiceProvider serviceProvider) {
         System.out.println("Update Accessed");
