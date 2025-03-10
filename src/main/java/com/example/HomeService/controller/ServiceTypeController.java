@@ -8,6 +8,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Controller for handling service type-related API endpoints.
+ */
 @CrossOrigin
 @RestController
 @RequestMapping("/service-types")
@@ -16,14 +19,23 @@ public class ServiceTypeController {
     @Autowired
     private ServiceTypeService serviceTypeService;
 
-    // Add a new service type
+    /**
+     * Endpoint to add a new service type.
+     *
+     * @param serviceName The service type to be added.
+     * @return The ID of the newly created or existing service type.
+     */
     @PostMapping
     public ResponseEntity<Long> addServiceType(@RequestBody ServiceType serviceName) {
         Long id = serviceTypeService.addServiceType(serviceName);
         return ResponseEntity.ok(id);
     }
 
-    // Retrieve all service categories
+    /**
+     * Endpoint to retrieve all service types.
+     *
+     * @return A list of all available service types.
+     */
     @GetMapping
     public ResponseEntity<List<ServiceType>> getAllServiceTypes() {
         List<ServiceType> serviceTypes = serviceTypeService.getAllServiceTypes();

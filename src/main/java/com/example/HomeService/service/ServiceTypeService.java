@@ -8,12 +8,22 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * Service class for managing Service Types.
+ */
 @Service
 public class ServiceTypeService {
 
     @Autowired
     private ServiceTypeRepository repository;
 
+    /**
+     * Adds a new service type if it does not already exist.
+     * If the service type exists, returns its existing ID.
+     *
+     * @param serviceName The service type to be added.
+     * @return The ID of the existing or newly created service type.
+     */
     @Transactional
     public Long addServiceType(ServiceType serviceName) {
         return repository.findByServiceName(serviceName.getServiceName())
@@ -24,7 +34,11 @@ public class ServiceTypeService {
                 });
     }
 
-    // New method to get all service types
+    /**
+     * Retrieves all service types from the database.
+     *
+     * @return A list of all service types.
+     */
     public List<ServiceType> getAllServiceTypes() {
         return repository.findAll();
     }

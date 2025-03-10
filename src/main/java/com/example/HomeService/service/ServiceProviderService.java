@@ -24,12 +24,23 @@ public class ServiceProviderService {
         this.usersRepository = usersRepository;
     }
 
-    // ✅ Get all service providers
+    /**
+     * Retrieves all registered service providers.
+     * @return List of all service providers.
+     */
     public List<ServiceProvider> getAllServiceProviders() {
         return serviceProviderRepository.findAll();
     }
 
-    //     ✅ Register a new service provider (only if user role is PROVIDER) with imageUrl
+    /**
+     * Registers a new service provider if the user has the PROVIDER role.
+     * @param userId The ID of the user registering as a service provider.
+     * @param companyName The name of the company.
+     * @param experienceYears The number of years of experience.
+     * @param address The address of the service provider.
+     * @param imageUrl (Optional) The profile image URL.
+     * @return The registered service provider entity.
+     */
     @Transactional
     public ServiceProvider registerServiceProvider(Long userId, String companyName, int experienceYears, String address, String imageUrl) {
         if (serviceProviderRepository.existsByUserId(userId)) {
@@ -48,23 +59,39 @@ public class ServiceProviderService {
         return serviceProviderRepository.save(serviceProvider);
     }
 
-    // ✅ Get a service provider by ID
+    /**
+     * Retrieves a service provider by its ID.
+     * @param id The ID of the service provider.
+     * @return The corresponding service provider entity.
+     */
     public ServiceProvider getServiceProviderById(Long id) {
         return serviceProviderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + id));
     }
 
-    // ✅ Get a service provider by User ID
+    /**
+     * Retrieves a service provider by the associated user ID.
+     * @param userId The user ID linked to the service provider.
+     * @return An optional containing the service provider if found.
+     */
     public Optional<ServiceProvider> getServiceProviderByUserId(Long userId) {
         return serviceProviderRepository.findByUserId(userId);
     }
 
-    // ✅ Get a service provider by Company Name
+    /**
+     * Retrieves a service provider by company name.
+     * @param companyName The name of the company.
+     * @return An optional containing the service provider if found.
+     */
     public Optional<ServiceProvider> getServiceProviderByCompanyName(String companyName) {
         return serviceProviderRepository.findByCompanyName(companyName);
     }
 
-    // ✅ Update a service provider (only fields that are provided will be updated)
+    /**
+     * Updates an existing service provider's details.
+     * Only the fields that are provided will be updated.
+     * @param updatedProvider The service provider object containing updated details.
+     */
     @Transactional
     public void updateServiceProvider(ServiceProvider updatedProvider) {
         ServiceProvider existingProvider = serviceProviderRepository.findById(updatedProvider.getServiceProviderId())
@@ -91,7 +118,11 @@ public class ServiceProviderService {
         serviceProviderRepository.save(existingProvider);
     }
 
-    //Calculate time since provider joined
+    /**
+     * Calculates the time since the service provider joined.
+     * @param providerId The ID of the service provider.
+     * @return A string representing the time since joining in years, months, and days.
+     */
     public String getTimeSinceJoined(Long providerId) {
         ServiceProvider provider = serviceProviderRepository.findById(providerId)
                 .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + providerId));
@@ -105,7 +136,10 @@ public class ServiceProviderService {
                 period.getDays() + " days";
     }
 
-    // ✅ Delete a service provider
+    /**
+     * Deletes a service provider from the system.
+     * @param providerId The ID of the service provider to delete.
+     */
     @Transactional
     public void deleteServiceProvider(Long providerId) {
         ServiceProvider serviceProvider = serviceProviderRepository.findById(providerId)
