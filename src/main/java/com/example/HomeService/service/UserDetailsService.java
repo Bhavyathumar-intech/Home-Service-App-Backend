@@ -68,13 +68,21 @@ public class UserDetailsService {
         return ResponseEntity.ok(userDetailsOptional.get());
     }
 
-    // ✅ Delete UserDetails
+
     public ResponseEntity<?> deleteUserDetails(Long userId) {
-        if (!userDetailsRepository.existsById(userId)) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found");
+        // Find user details by user ID (foreign key)
+        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);
+
+        // If not found, return 404 response
+        if (userDetailsOptional.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body("User details not found for userId: " + userId);
         }
 
-        userDetailsRepository.deleteById(userId);
-        return ResponseEntity.ok("User details deleted successfully");
+        // Delete user details
+        userDetailsRepository.delete(userDetailsOptional.get());
+
+        return ResponseEntity.ok("User details deleted successfully for userId: " + userId);
     }
+
 }
