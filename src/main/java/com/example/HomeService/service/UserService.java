@@ -20,22 +20,34 @@ import com.example.HomeService.repo.UserRepository;
 import com.example.HomeService.repo.ServiceProviderRepository;
 import com.example.HomeService.model.ServiceProvider;
 
+/**
+ * Service class for managing user operations like registration, authentication, and retrieval.
+ */
 @Service
 public class UserService {
-    @Autowired
-    JWTservice jwtService;
 
     @Autowired
-    AuthenticationManager authManager;
+    private JWTservice jwtService;
 
     @Autowired
-    UserRepository repo;
+    private AuthenticationManager authManager;
 
     @Autowired
-    ServiceProviderRepository serviceProviderRepository;
+    private UserRepository repo;
+
+    @Autowired
+    private ServiceProviderRepository serviceProviderRepository;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
+    /**
+     * Registers a new user.
+     * If no role is specified, assigns USER role by default.
+     * Encrypts the password before storing it.
+     *
+     * @param user The user object to register.
+     * @return The registered user object.
+     */
     public Users register(Users user) {
         if (user.getRole() == null) {
             user.setRole(Role.USER);
@@ -45,6 +57,14 @@ public class UserService {
         return user;
     }
 
+    /**
+     * Verifies user credentials and generates JWT token if authentication is successful.
+     * If the user is a service provider, includes their service provider ID in the response.
+     *
+     * @param user     The user object containing login credentials.
+     * @param response The HTTP response object to set cookies.
+     * @return Response entity containing success message and user details or error message.
+     */
     public ResponseEntity<?> verify(Users user, HttpServletResponse response) {
         Users dbUser = repo.findByEmail(user.getEmail());
 
@@ -103,6 +123,11 @@ public class UserService {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
     }
 
+    /**
+     * Retrieves all registered users from the database.
+     *
+     * @return List of all users.
+     */
     public List<Users> getData() {
         return repo.findAll();
     }

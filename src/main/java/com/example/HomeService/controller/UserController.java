@@ -1,44 +1,3 @@
-//package com.example.HomeService.controller;
-//
-//import java.util.List;
-//
-//import jakarta.servlet.http.HttpServletResponse;
-//import org.springframework.beans.factory.annotation.Autowired;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//
-//import com.example.HomeService.model.Users;
-//import com.example.HomeService.service.UserService;
-//
-//@RestController
-//@CrossOrigin
-//public class UserController {
-//
-//    @Autowired
-//    UserService service;
-//
-//	@Autowired
-//	HttpServletResponse response;
-//
-//	@PostMapping("/auth/register")
-//	public Users register(@RequestBody Users user) {
-//		return service.register(user);
-//	}
-//
-//	@PostMapping("/auth/login")
-//	public ResponseEntity<?> login(@RequestBody Users user) {
-//		return service.verify(user, response);
-//	}
-//
-//	@GetMapping("/auth/AllData")
-//	public List<Users> getData() {
-//		System.out.println("hello");
-//		List<Users>users = service.getData();
-//		System.out.println(users);
-//		return users;
-//
-//}
-//}
 package com.example.HomeService.controller;
 
 import java.util.List;
@@ -52,21 +11,37 @@ import org.springframework.web.bind.annotation.*;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.service.UserService;
 
+/**
+ * REST Controller for handling user-related operations.
+ * Provides endpoints for user registration, authentication, and retrieval of all users.
+ */
 @RestController
 @CrossOrigin
 public class UserController {
 
     @Autowired
-    UserService service;
+    private UserService service;
 
     @Autowired
-    HttpServletResponse response;
+    private HttpServletResponse response;
 
+    /**
+     * Endpoint for user registration.
+     *
+     * @param user User object containing registration details.
+     * @return Registered user object.
+     */
     @PostMapping("/auth/register")
     public Users register(@RequestBody Users user) {
         return service.register(user);
     }
 
+    /**
+     * Endpoint for user login authentication.
+     *
+     * @param user User object containing login credentials.
+     * @return ResponseEntity with authentication result.
+     */
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody Users user) {
         ResponseEntity<?> responseEntity = service.verify(user, response);
@@ -78,6 +53,11 @@ public class UserController {
         return responseEntity;
     }
 
+    /**
+     * Endpoint to retrieve all registered users.
+     *
+     * @return List of all Users.
+     */
     @GetMapping("/auth/AllData")
     public List<Users> getData() {
         return service.getData();
