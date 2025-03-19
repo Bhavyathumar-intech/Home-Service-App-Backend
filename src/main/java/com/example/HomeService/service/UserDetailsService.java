@@ -1,5 +1,6 @@
 package com.example.HomeService.service;
 
+import com.example.HomeService.dto.userDetailsDto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.repo.UserDetailsRepository;
@@ -20,19 +21,15 @@ public class UserDetailsService {
     @Autowired
     private UserRepository usersRepository;
 
-    // ✅ Save or Update UserDetails
     public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails) {
         Optional<Users> userOptional = usersRepository.findById(userId);
-
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
         }
 
-        Users user = userOptional.get();
-        userDetails.setUser(user); // ✅ Manually set the user object
-
+        userDetails.setUser(userOptional.get());
         UserDetails savedDetails = userDetailsRepository.save(userDetails);
-        return ResponseEntity.ok(savedDetails);
+        return ResponseEntity.ok(convertToDto(savedDetails));
     }
 
     public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails) {
@@ -43,7 +40,6 @@ public class UserDetailsService {
         }
 
         UserDetails existingDetails = existingDetailsOpt.get();
-
         existingDetails.setAddress(updatedDetails.getAddress());
         existingDetails.setCity(updatedDetails.getCity());
         existingDetails.setState(updatedDetails.getState());
@@ -53,11 +49,9 @@ public class UserDetailsService {
         existingDetails.setProfilePictureUrl(updatedDetails.getProfilePictureUrl());
 
         userDetailsRepository.save(existingDetails);
-
         return ResponseEntity.ok("User details updated successfully!");
     }
 
-    // ✅ Get UserDetails by userId
     public ResponseEntity<?> getUserDetailsByUserId(Long userId) {
         Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUserId(userId);
 
@@ -65,24 +59,29 @@ public class UserDetailsService {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found");
         }
 
-        return ResponseEntity.ok(userDetailsOptional.get());
+        return ResponseEntity.ok(convertToDto(userDetailsOptional.get()));
     }
 
-
     public ResponseEntity<?> deleteUserDetails(Long userId) {
-        // Find user details by user ID (foreign key)
         Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);
-
-        // If not found, return 404 response
         if (userDetailsOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body("User details not found for userId: " + userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found for userId: " + userId);
         }
 
-        // Delete user details
         userDetailsRepository.delete(userDetailsOptional.get());
-
         return ResponseEntity.ok("User details deleted successfully for userId: " + userId);
     }
 
+    private UserDetailsRegisterDto convertToDto(UserDetails userDetails) {
+        return new UserDetailsRegisterDto(
+                userDetails.getUser().getId(),
+                userDetails.getAddress(),
+                userDetails.getCity(),
+                userDetails.getState(),
+                userDetails.getCountry(),
+                userDetails.getZipCode(),
+                userDetails.getDateOfBirth(),
+                userDetails.getProfilePictureUrl()
+        );
+    }
 }
