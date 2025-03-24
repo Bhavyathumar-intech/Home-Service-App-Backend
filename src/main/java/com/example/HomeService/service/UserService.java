@@ -99,7 +99,7 @@ public class UserService {
                 responseBody.put("message", "Login successful");
                 responseBody.put("user", dbUser);
                 responseBody.put("serviceProviderId", serviceProviderId);
-                responseBody.put("token",cookie.toString()); //changes
+                responseBody.put("token",cookie.getValue()); //changes
 
                 return ResponseEntity.ok(responseBody);
             }
