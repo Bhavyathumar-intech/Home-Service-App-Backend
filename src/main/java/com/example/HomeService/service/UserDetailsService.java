@@ -22,6 +22,8 @@ public class UserDetailsService {
     private UserRepository usersRepository;
 
     public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails) {
+        System.out.println("Chexkkkkkkkk");
+        System.out.println(userDetails);
         Optional<Users> userOptional = usersRepository.findById(userId);
         if (userOptional.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");

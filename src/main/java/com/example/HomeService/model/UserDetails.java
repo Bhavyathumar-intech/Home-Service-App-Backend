@@ -58,8 +58,8 @@ public class UserDetails {
      * Date of birth of the user.
      * Stored in the format "dd-MM-yyyy".
      */
-//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+//    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "date_of_birth", nullable = false)
     private LocalDate dateOfBirth;
 
