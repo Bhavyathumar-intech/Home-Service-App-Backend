@@ -1,10 +1,9 @@
 package com.example.HomeService.service;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import com.example.HomeService.dto.userDto.UserRegisterDto;
+import com.example.HomeService.dto.userDto.UserResponseDto;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -95,13 +94,15 @@ public class UserService {
 
                 response.addHeader("Set-Cookie", cookie.toString());
 
-                Map<String, Object> responseBody = new HashMap<>();
-                responseBody.put("message", "Login successful");
-                responseBody.put("user", dbUser);
-                responseBody.put("serviceProviderId", serviceProviderId);
-                responseBody.put("token",cookie.getValue()); //changes
+                UserResponseDto loginResponse = new UserResponseDto(
+                        dbUser.getId(),
+                        dbUser.getEmail(),
+                        dbUser.getRole().toString(),
+                        serviceProviderId,
+                        jwtToken
+                );
 
-                return ResponseEntity.ok(responseBody);
+                return ResponseEntity.ok(loginResponse);
             }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
@@ -109,6 +110,7 @@ public class UserService {
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
     }
+
 
     public List<Users> getData() {
         return repo.findAll();

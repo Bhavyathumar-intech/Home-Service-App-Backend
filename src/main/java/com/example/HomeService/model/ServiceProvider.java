@@ -50,10 +50,10 @@ public class ServiceProvider {
     private String address;
 
     /**
-     * Contact phone number of the service provider.
+     * Contact Company Number of the service provider.
      */
-    @Column(name = "phone_number", nullable = false, unique = true)
-    private String phoneNumber;
+    @Column(name = "company_number", nullable = false, unique = true)
+    private String companyNumber;
 
     /**
      * Date the provider joined the platform.
@@ -76,12 +76,12 @@ public class ServiceProvider {
      * @param address         Address of the service provider.
      * @param imageUrl        Optional image URL.
      */
-    public ServiceProvider(Users user, String companyName, int experienceYears, String address, String imageUrl) {
+    public ServiceProvider(Users user, String companyName, int experienceYears, String address, String imageUrl, String companyNumber) {
         this.user = user;
         this.companyName = companyName;
         this.experienceYears = experienceYears;
         this.address = address;
-        this.phoneNumber = user.getPhoneNumber();
+        this.companyNumber = companyNumber;
         this.joiningDate = LocalDate.now();
         this.imageUrl = imageUrl;
     }
@@ -107,7 +107,7 @@ public class ServiceProvider {
                 ", companyName='" + companyName + '\'' +
                 ", experienceYears=" + experienceYears +
                 ", address='" + address + '\'' +
-                ", phoneNumber='" + phoneNumber + '\'' +
+                ", phoneNumber='" + companyNumber + '\'' +
                 ", joiningDate=" + joiningDate +
                 ", imageUrl='" + imageUrl + '\'' +
                 '}';

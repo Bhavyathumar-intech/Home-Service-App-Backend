@@ -1,5 +1,6 @@
 package com.example.HomeService.service;
 
+import com.example.HomeService.dto.userDetailsDto.UserDetailsDTO;
 import com.example.HomeService.dto.userDetailsDto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
@@ -22,7 +23,7 @@ public class UserDetailsService {
     private UserRepository usersRepository;
 
     public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails) {
-        System.out.println("Chexkkkkkkkk");
+        System.out.println("Checkkkkkkkk");
         System.out.println(userDetails);
         Optional<Users> userOptional = usersRepository.findById(userId);
         if (userOptional.isEmpty()) {
@@ -33,6 +34,21 @@ public class UserDetailsService {
         UserDetails savedDetails = userDetailsRepository.save(userDetails);
         return ResponseEntity.ok(convertToDto(savedDetails));
     }
+
+    public ResponseEntity<?> getUserDetailsByUserId(Long userId) {
+        UserDetails userDetailsOptional = userDetailsRepository.findByUserId(userId).get();
+
+        if (userDetailsOptional == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found");
+        }
+        System.out.println("UserDetails OPTIONAL     " + userDetailsOptional);
+
+        // Convert Entity to DTO
+        UserDetailsDTO userDetailsDTO = new UserDetailsDTO(userDetailsOptional);
+        System.out.println("UserDetails DTO  " + userDetailsDTO.toString());
+        return ResponseEntity.ok(userDetailsDTO);
+    }
+
 
     public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails) {
         Optional<UserDetails> existingDetailsOpt = userDetailsRepository.findByUserId(userId);
@@ -54,15 +70,6 @@ public class UserDetailsService {
         return ResponseEntity.ok("User details updated successfully!");
     }
 
-    public ResponseEntity<?> getUserDetailsByUserId(Long userId) {
-        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUserId(userId);
-
-        if (userDetailsOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found");
-        }
-
-        return ResponseEntity.ok(convertToDto(userDetailsOptional.get()));
-    }
 
     public ResponseEntity<?> deleteUserDetails(Long userId) {
         Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);

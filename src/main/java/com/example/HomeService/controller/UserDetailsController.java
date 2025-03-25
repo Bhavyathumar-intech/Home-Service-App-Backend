@@ -18,12 +18,11 @@ public class UserDetailsController {
 
     @PostMapping("/addDetails")
     public ResponseEntity<?> registerUserDetails(@RequestBody UserDetailsRegisterDto userDetailsRegisterDto) {
-        System.out.println("helloooooo");
         UserDetails userDetails = convertToEntity(userDetailsRegisterDto);
         return userDetailsService.saveOrUpdateUserDetails(userDetailsRegisterDto.getUserId(), userDetails);
     }
 
-    @PutMapping
+    @PutMapping("/update")
     public ResponseEntity<?> updateUserDetails(@RequestBody UserDetailsRegisterDto userDetailsRegisterDto) {
         if (userDetailsRegisterDto.getUserId() == null) {
             return ResponseEntity.badRequest().body("Missing 'userId' in request body");
@@ -33,8 +32,9 @@ public class UserDetailsController {
         return userDetailsService.updateUserDetailsByUserId(userDetailsRegisterDto.getUserId(), userDetails);
     }
 
-    @GetMapping
-    public ResponseEntity<?> getUserDetails(@RequestParam Long userId) {
+    @GetMapping("/get-details-by-id/{userId}")
+    @ResponseBody
+    public ResponseEntity<?> getUserDetails(@PathVariable Long userId) {
         return userDetailsService.getUserDetailsByUserId(userId);
     }
 
