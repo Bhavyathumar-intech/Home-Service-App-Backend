@@ -28,16 +28,6 @@ public class UserController {
         return service.register(userDto);
     }
 
-//    @PostMapping("/auth/login")
-//    public ResponseEntity<?> login(@RequestBody Users user) {
-//        ResponseEntity<?> responseEntity = service.verify(user, response);
-//
-//        if (responseEntity.getBody() instanceof Map) {
-//            Map<String, Object> responseBody = (Map<String, Object>) responseEntity.getBody();
-//            return ResponseEntity.ok(responseBody);
-//        }
-//        return responseEntity;
-//    }
 
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDto userLoginDto) {
@@ -47,6 +37,8 @@ public class UserController {
         user.setPassword(userLoginDto.getPassword());
         user.setRole(userLoginDto.getRole());
 
+        System.out.println(user.getPassword());
+        System.out.println(user.toString());
         // Call the service layer for verification
         ResponseEntity<?> responseEntity = service.verify(user, response);
 

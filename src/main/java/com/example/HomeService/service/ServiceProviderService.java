@@ -56,7 +56,7 @@ public class ServiceProviderService {
             throw new RuntimeException("User does not have the PROVIDER role");
         }
 
-        // ✅ Save service provider in DB
+        //  Save service provider in DB
         ServiceProvider serviceProvider = new ServiceProvider(
                 user,
                 requestDto.getCompanyName(),
@@ -67,26 +67,26 @@ public class ServiceProviderService {
         );
         serviceProvider = serviceProviderRepository.save(serviceProvider); // Save to DB
 
-        Long serviceProviderId = serviceProvider.getServiceProviderId(); // ✅ Get newly generated ID
+        Long serviceProviderId = serviceProvider.getServiceProviderId(); //  Get newly generated ID
 
-        // ✅ Generate a NEW JWT token with serviceProviderId now included
+        //  Generate a NEW JWT token with serviceProviderId now included
         String newJwtToken = jwtService.generateToken(
                 user.getEmail(),
                 user.getRole().toString(),
                 user.getId(),
-                serviceProviderId // ✅ Now it includes the generated ID
+                serviceProviderId //  Now it includes the generated ID
         );
 
-        // ✅ Update the auth cookie with the new token
+        //  Update the auth cookie with the new token
         ResponseCookie updatedCookie = ResponseCookie.from("authToken", newJwtToken)
-                .httpOnly(true)  // 🔒 More secure
-                .secure(true)    // 🔒 Use HTTPS in production
+                .httpOnly(true)
+                .secure(true)
                 .path("/")
-                .sameSite("Strict")  // 🔒 Prevent CSRF attacks
+                .sameSite("Strict")  //  Prevent CSRF attacks
                 .build();
         response.addHeader("Set-Cookie", updatedCookie.toString());
 
-        // ✅ Use DTO Constructor Instead of Manual Mapping
+        //  Use DTO Constructor Instead of Manual Mapping
         ServiceProviderResponseDto responseDto = new ServiceProviderResponseDto(serviceProvider);
 
         Map<String, Object> responseBody = new HashMap<>();
@@ -104,15 +104,12 @@ public class ServiceProviderService {
      * @param id The ID of the service provider.
      * @return The corresponding service provider entity.
      */
-//    public ServiceProvider getServiceProviderById(Long id) {
-//        return serviceProviderRepository.findById(id)
-//                .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + id));
-//    }
+
     public ServiceProviderResponseDto getServiceProviderById(Long id) {
         ServiceProvider serviceProvider = serviceProviderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + id));
 
-        return new ServiceProviderResponseDto(serviceProvider); // ✅ Using your existing DTO
+        return new ServiceProviderResponseDto(serviceProvider); //  Using your existing DTO
     }
 
 
@@ -152,7 +149,7 @@ public class ServiceProviderService {
         ServiceProvider existingProvider = serviceProviderRepository.findById(updatedProvider.getServiceProviderId())
                 .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + updatedProvider.getServiceProviderId()));
 
-        // ✅ Update fields if they are provided
+        //  Update fields if they are provided
         if (updatedProvider.getCompanyName() != null) {
             existingProvider.setCompanyName(updatedProvider.getCompanyName());
         }
@@ -169,7 +166,7 @@ public class ServiceProviderService {
             existingProvider.setImageUrl(updatedProvider.getImageUrl());
         }
 
-        // ✅ Save the updated provider
+        //  Save the updated provider
         serviceProviderRepository.save(existingProvider);
     }
 
