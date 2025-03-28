@@ -58,6 +58,7 @@ public class ServiceProvider {
     /**
      * Date the provider joined the platform.
      */
+    @Temporal(TemporalType.DATE)
     @Column(name = "joining_date", nullable = false, updatable = false)
     private LocalDate joiningDate;
 
@@ -74,16 +75,14 @@ public class ServiceProvider {
      * @param companyName     Name of the company.
      * @param experienceYears Years of experience.
      * @param address         Address of the service provider.
-     * @param imageUrl        Optional image URL.
      */
-    public ServiceProvider(Users user, String companyName, int experienceYears, String address, String imageUrl, String companyNumber) {
+    public ServiceProvider(Users user, String companyName, int experienceYears, String address, String companyNumber) {
         this.user = user;
         this.companyName = companyName;
         this.experienceYears = experienceYears;
         this.address = address;
         this.companyNumber = companyNumber;
         this.joiningDate = LocalDate.now();
-        this.imageUrl = imageUrl;
     }
 
     /**

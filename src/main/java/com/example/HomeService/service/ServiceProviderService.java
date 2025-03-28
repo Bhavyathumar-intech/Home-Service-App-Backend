@@ -13,13 +13,16 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class ServiceProviderService {
@@ -29,9 +32,26 @@ public class ServiceProviderService {
     @Autowired
     private JWTservice jwtService;
 
+    private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage";
+
     public ServiceProviderService(ServiceProviderRepository serviceProviderRepository, UserRepository usersRepository) {
         this.serviceProviderRepository = serviceProviderRepository;
         this.usersRepository = usersRepository;
+    }
+
+    private String storeImage(MultipartFile file) throws IOException {
+        // Ensure directory exists
+        File directory = new File(IMAGE_DIRECTORY);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        // Generate a unique filename
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(IMAGE_DIRECTORY, fileName);
+        // Save file to disk
+        Files.write(filePath, file.getBytes());
+
+        return fileName;
     }
 
     /**
@@ -44,7 +64,7 @@ public class ServiceProviderService {
     }
 
     @Transactional
-    public ResponseEntity<?> registerServiceProvider(ServiceProviderRegisterDto requestDto, HttpServletResponse response) {
+    public ResponseEntity<?> registerServiceProvider(ServiceProviderRegisterDto requestDto, HttpServletResponse response , MultipartFile imageFile) throws IOException {
         if (serviceProviderRepository.existsByUserId(requestDto.getUserId())) {
             throw new RuntimeException("User is already registered as a service provider");
         }
@@ -56,15 +76,19 @@ public class ServiceProviderService {
             throw new RuntimeException("User does not have the PROVIDER role");
         }
 
+
         //  Save service provider in DB
         ServiceProvider serviceProvider = new ServiceProvider(
                 user,
                 requestDto.getCompanyName(),
                 requestDto.getExperienceYears(),
                 requestDto.getAddress(),
-                requestDto.getImageUrl(),
                 requestDto.getCompanyNumber()
         );
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = storeImage(imageFile);
+            serviceProvider.setImageUrl(fileName);
+        }
         serviceProvider = serviceProviderRepository.save(serviceProvider); // Save to DB
 
         Long serviceProviderId = serviceProvider.getServiceProviderId(); //  Get newly generated ID

@@ -46,8 +46,7 @@ public class UserDetailsService {
         return fileName;
     }
 
-    public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException{
-        System.out.println("Checkkkkkkkk");
+    public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException {
         System.out.println(userDetails);
         Optional<Users> userOptional = usersRepository.findById(userId);
         if (userOptional.isEmpty()) {
@@ -62,21 +61,6 @@ public class UserDetailsService {
         UserDetails savedDetails = userDetailsRepository.save(userDetails);
         return ResponseEntity.ok(convertToDto(savedDetails));
     }
-
-//    public Equipment addEquipment(Equipment equipment, MultipartFile imageFile) throws IOException {
-//
-//        int rental_id = equipment.getUser().getId();
-//
-//        Users rental = repositry.findById(rental_id).get();
-//
-//        equipment.setUser(rental);
-//        if (imageFile != null && !imageFile.isEmpty()) {
-//            String fileName = storeImage(imageFile);
-//            equipment.setImageUrl(fileName);
-//        }
-//        return equipmentRepo.save(equipment);
-//    }
-
 
     public ResponseEntity<?> getUserDetailsByUserId(Long userId) {
         UserDetails userDetailsOptional = userDetailsRepository.findByUserId(userId).get();
@@ -132,8 +116,7 @@ public class UserDetailsService {
                 userDetails.getState(),
                 userDetails.getCountry(),
                 userDetails.getZipCode(),
-                userDetails.getDateOfBirth(),
-                userDetails.getProfilePictureUrl()
+                userDetails.getDateOfBirth()
         );
     }
 }

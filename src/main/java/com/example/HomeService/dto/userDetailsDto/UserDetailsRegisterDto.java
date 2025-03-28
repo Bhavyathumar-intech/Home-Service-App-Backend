@@ -29,5 +29,5 @@ public class UserDetailsRegisterDto {
 //    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date dateOfBirth;
 
-    private String profilePictureUrl;
+//    private String profilePictureUrl;
 }

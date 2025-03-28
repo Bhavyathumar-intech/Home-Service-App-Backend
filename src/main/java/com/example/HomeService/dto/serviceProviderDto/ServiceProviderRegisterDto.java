@@ -13,5 +13,4 @@ public class ServiceProviderRegisterDto {
     private int experienceYears;
     private String address;
     private String companyNumber;
-    private String imageUrl;
 }

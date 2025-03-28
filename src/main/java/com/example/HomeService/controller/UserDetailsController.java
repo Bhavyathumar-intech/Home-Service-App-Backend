@@ -78,7 +78,6 @@ public class UserDetailsController {
         userDetails.setCountry(dto.getCountry());
         userDetails.setZipCode(dto.getZipCode());
         userDetails.setDateOfBirth(dto.getDateOfBirth());
-        userDetails.setProfilePictureUrl(dto.getProfilePictureUrl());
         return userDetails;
     }
 

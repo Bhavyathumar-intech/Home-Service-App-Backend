@@ -6,6 +6,7 @@ import com.example.HomeService.dto.userDto.UserRegisterDto;
 import com.example.HomeService.dto.userDto.UserResponseDto;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -38,6 +39,12 @@ public class UserService {
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
     public Users register(UserRegisterDto userDto) {
+        if (repo.existsByEmail(userDto.getEmail())) {
+            throw new DuplicateKeyException("Email is Already in Use");
+        }
+        if (repo.existsByPhoneNumber(userDto.getPhoneNumber())) {
+            throw new DuplicateKeyException("Phone-Number Already in Use");
+        }
         Users user = new Users();
         user.setName(userDto.getName());
         user.setEmail(userDto.getEmail());

@@ -4,12 +4,22 @@ import com.example.HomeService.dto.serviceProviderDto.ServiceProviderRegisterDto
 import com.example.HomeService.dto.serviceProviderDto.ServiceProviderResponseDto;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.service.ServiceProviderService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -29,14 +39,30 @@ public class ServiceProviderController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerServiceProvider(@RequestBody ServiceProviderRegisterDto requestDto) {
+    public ResponseEntity<?> registerServiceProvider(
+            @RequestPart("ServiceProviderRegisterDto") String requestDtoString,
+            @RequestPart("imageFile") MultipartFile imageFile) throws IOException
+    {
         try {
-            ResponseEntity<?> registeredProvider = serviceProviderService.registerServiceProvider(requestDto, httpServletResponse);
+            System.out.println(requestDtoString);
+            // Convert JSON string to DTO
+            ObjectMapper objectMapper = new ObjectMapper();
+            ServiceProviderRegisterDto requestDto = objectMapper.readValue(requestDtoString, ServiceProviderRegisterDto.class);
+
+            System.out.println(requestDto);
+
+
+            // Call service method
+            ResponseEntity<?> registeredProvider = serviceProviderService.registerServiceProvider(requestDto, httpServletResponse, imageFile);
+
             return ResponseEntity.ok(registeredProvider);
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid JSON format"));
         } catch (RuntimeException ex) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
         }
     }
+
 
     /**
      * Retrieves all service providers.
@@ -124,5 +150,19 @@ public class ServiceProviderController {
         System.out.println("Update Accessed");
         serviceProviderService.updateServiceProvider(serviceProvider);
         return ResponseEntity.ok("Service Provider updated successfully");
+    }
+
+    // Send that uuid of image on this route to get Image
+    @GetMapping("/image/{filename}")
+    public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
+        Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage\\" + filename);
+        Resource resource = new UrlResource(imagePath.toUri());
+        if (resource.exists()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG) // Change if using PNG, etc.
+                    .body(resource);
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
