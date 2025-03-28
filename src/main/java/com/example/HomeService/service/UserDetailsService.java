@@ -1,6 +1,6 @@
 package com.example.HomeService.service;
 
-import com.example.HomeService.dto.userDetailsDto.UserDetailsDTO;
+import com.example.HomeService.dto.userDetailsDto.UserDetailsResponseDTO;
 import com.example.HomeService.dto.userDetailsDto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
@@ -10,8 +10,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class UserDetailsService {
@@ -22,7 +29,24 @@ public class UserDetailsService {
     @Autowired
     private UserRepository usersRepository;
 
-    public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails) {
+    private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\Image\\";
+
+    private String storeImage(MultipartFile file) throws IOException {
+        // Ensure directory exists
+        File directory = new File(IMAGE_DIRECTORY);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        // Generate a unique filename
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(IMAGE_DIRECTORY, fileName);
+        // Save file to disk
+        Files.write(filePath, file.getBytes());
+
+        return fileName;
+    }
+
+    public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException{
         System.out.println("Checkkkkkkkk");
         System.out.println(userDetails);
         Optional<Users> userOptional = usersRepository.findById(userId);
@@ -31,9 +55,28 @@ public class UserDetailsService {
         }
 
         userDetails.setUser(userOptional.get());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = storeImage(imageFile);
+            userDetails.setProfilePictureUrl(fileName);
+        }
         UserDetails savedDetails = userDetailsRepository.save(userDetails);
         return ResponseEntity.ok(convertToDto(savedDetails));
     }
+
+//    public Equipment addEquipment(Equipment equipment, MultipartFile imageFile) throws IOException {
+//
+//        int rental_id = equipment.getUser().getId();
+//
+//        Users rental = repositry.findById(rental_id).get();
+//
+//        equipment.setUser(rental);
+//        if (imageFile != null && !imageFile.isEmpty()) {
+//            String fileName = storeImage(imageFile);
+//            equipment.setImageUrl(fileName);
+//        }
+//        return equipmentRepo.save(equipment);
+//    }
+
 
     public ResponseEntity<?> getUserDetailsByUserId(Long userId) {
         UserDetails userDetailsOptional = userDetailsRepository.findByUserId(userId).get();
@@ -44,9 +87,9 @@ public class UserDetailsService {
         System.out.println("UserDetails OPTIONAL     " + userDetailsOptional);
 
         // Convert Entity to DTO
-        UserDetailsDTO userDetailsDTO = new UserDetailsDTO(userDetailsOptional);
-        System.out.println("UserDetails DTO  " + userDetailsDTO.toString());
-        return ResponseEntity.ok(userDetailsDTO);
+        UserDetailsResponseDTO userDetailsResponseDTO = new UserDetailsResponseDTO(userDetailsOptional);
+        System.out.println("UserDetails DTO  " + userDetailsResponseDTO.toString());
+        return ResponseEntity.ok(userDetailsResponseDTO);
     }
 
 

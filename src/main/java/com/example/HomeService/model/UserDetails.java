@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.Date;
 
 /**
  * Entity class representing user details.
@@ -58,10 +59,12 @@ public class UserDetails {
      * Date of birth of the user.
      * Stored in the format "dd-MM-yyyy".
      */
+
+    @Temporal(TemporalType.DATE)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 //    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     @Column(name = "date_of_birth", nullable = false)
-    private LocalDate dateOfBirth;
+    private Date dateOfBirth;
 
     /**
      * URL to the user's profile picture.

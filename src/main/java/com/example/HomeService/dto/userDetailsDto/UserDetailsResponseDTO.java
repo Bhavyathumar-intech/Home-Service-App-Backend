@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UserDetailsDTO {
+public class UserDetailsResponseDTO {
     private Long udId;
     private Long userId;
     private String name;
@@ -21,7 +21,7 @@ public class UserDetailsDTO {
     private String profilePictureUrl;
 
     // Constructor
-    public UserDetailsDTO(UserDetails userDetails) {
+    public UserDetailsResponseDTO(UserDetails userDetails) {
         this.udId = userDetails.getUdId();
         this.userId = userDetails.getUser().getId();
         this.name = userDetails.getUser().getName();
