@@ -2,6 +2,7 @@ package com.example.HomeService.service;
 
 import com.example.HomeService.dto.serviceProviderDto.ServiceProviderRegisterDto;
 import com.example.HomeService.dto.serviceProviderDto.ServiceProviderResponseDto;
+import com.example.HomeService.dto.serviceProviderDto.ServiceProviderUpdateDto;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.Role;
@@ -64,7 +65,7 @@ public class ServiceProviderService {
     }
 
     @Transactional
-    public ResponseEntity<?> registerServiceProvider(ServiceProviderRegisterDto requestDto, HttpServletResponse response , MultipartFile imageFile) throws IOException {
+    public ResponseEntity<?> registerServiceProvider(ServiceProviderRegisterDto requestDto, HttpServletResponse response, MultipartFile imageFile) throws IOException {
         if (serviceProviderRepository.existsByUserId(requestDto.getUserId())) {
             throw new RuntimeException("User is already registered as a service provider");
         }
@@ -169,7 +170,7 @@ public class ServiceProviderService {
      * @param updatedProvider The service provider object containing updated details.
      */
     @Transactional
-    public void updateServiceProvider(ServiceProvider updatedProvider) {
+    public ResponseEntity<ServiceProviderResponseDto> updateServiceProvider(ServiceProviderUpdateDto updatedProvider, MultipartFile imageFile) throws IOException {
         ServiceProvider existingProvider = serviceProviderRepository.findById(updatedProvider.getServiceProviderId())
                 .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + updatedProvider.getServiceProviderId()));
 
@@ -186,12 +187,15 @@ public class ServiceProviderService {
         if (updatedProvider.getCompanyNumber() != null) {
             existingProvider.setCompanyNumber(updatedProvider.getCompanyNumber());
         }
-        if (updatedProvider.getImageUrl() != null) {
-            existingProvider.setImageUrl(updatedProvider.getImageUrl());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = storeImage(imageFile);
+            existingProvider.setImageUrl(fileName);
         }
 
+        ServiceProvider serviceProvider = serviceProviderRepository.save(existingProvider);
+
         //  Save the updated provider
-        serviceProviderRepository.save(existingProvider);
+        return ResponseEntity.ok(new ServiceProviderResponseDto(serviceProvider));
     }
 
     /**

@@ -9,10 +9,17 @@ import com.example.HomeService.repo.ServicesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,11 +27,27 @@ public class ServicesService {
 
     private final ServicesRepository serviceRepository;
     private final ServiceProviderRepository serviceProviderRepository;
+    private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\ServicesImage";
 
     @Autowired
     public ServicesService(ServicesRepository serviceRepository, ServiceProviderRepository serviceProviderRepository) {
         this.serviceRepository = serviceRepository;
         this.serviceProviderRepository = serviceProviderRepository;
+    }
+
+    private String storeImage(MultipartFile file) throws IOException {
+        // Ensure directory exists
+        File directory = new File(IMAGE_DIRECTORY);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        // Generate a unique filename
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(IMAGE_DIRECTORY, fileName);
+        // Save file to disk
+        Files.write(filePath, file.getBytes());
+
+        return fileName;
     }
 
     // Convert Services to ServiceResponseDTO
@@ -44,7 +67,7 @@ public class ServicesService {
         );
     }
 
-    public ResponseEntity<?> createService(ServicesRegisterDto dto) {
+    public ResponseEntity<?> createService(ServicesRegisterDto dto, MultipartFile imageFile) throws IOException {
         // Check if a service with the same serviceName and serviceProvider already exists in the database
         Optional<Services> existingService = serviceRepository.findAll().stream()
                 .filter(serv -> serv.getServiceName().equals(dto.getServiceName()) &&
@@ -65,7 +88,11 @@ public class ServicesService {
         service.setPrice(dto.getPrice());
         service.setExpectedDuration(dto.getExpectedDuration());
         service.setStatus(dto.isStatus());
-        service.setImage_url(dto.getImageUrl());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = storeImage(imageFile);
+            service.setImage_url(fileName);
+        }
+//        service.setImage_url(dto.getImageUrl());
 
         // Save service and return response as DTO
         Services savedService = serviceRepository.save(service);
@@ -84,7 +111,7 @@ public class ServicesService {
         return service.map(this::convertToDTO);
     }
 
-    public ServicesResponseDto updateService(Long id, ServicesRegisterDto dto) {
+    public ResponseEntity<ServicesResponseDto> updateService(Long id, ServicesRegisterDto dto) {
         Services service = serviceRepository.findById(id).orElseThrow(() -> new RuntimeException("Service not found"));
         ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider()).orElseThrow(() -> new RuntimeException("Service provider not found"));
 
@@ -99,7 +126,7 @@ public class ServicesService {
         service.setUpdatedAt(LocalDate.now());
 
         Services updatedService = serviceRepository.save(service);
-        return convertToDTO(updatedService);
+        return ResponseEntity.ok(convertToDTO(updatedService));
     }
 
     public void deleteService(Long id) {

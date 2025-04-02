@@ -2,6 +2,7 @@ package com.example.HomeService.controller;
 
 import com.example.HomeService.dto.serviceProviderDto.ServiceProviderRegisterDto;
 import com.example.HomeService.dto.serviceProviderDto.ServiceProviderResponseDto;
+import com.example.HomeService.dto.serviceProviderDto.ServiceProviderUpdateDto;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.service.ServiceProviderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -146,10 +147,25 @@ public class ServiceProviderController {
      * @return ResponseEntity with a success message.
      */
     @PutMapping("/update")
-    public ResponseEntity<String> updateServiceProvider(@RequestBody ServiceProvider serviceProvider) {
-        System.out.println("Update Accessed");
-        serviceProviderService.updateServiceProvider(serviceProvider);
-        return ResponseEntity.ok("Service Provider updated successfully");
+    public ResponseEntity<ServiceProviderResponseDto> updateServiceProvider(
+            @RequestPart("ServiceProviderUpdateDto") String serviceProvider ,
+            @RequestPart("imageFile") MultipartFile imageFile ) {
+
+        try {
+            // Convert JSON string to DTO
+            ObjectMapper objectMapper = new ObjectMapper();
+            ServiceProviderUpdateDto requestDto = objectMapper.readValue(serviceProvider, ServiceProviderUpdateDto.class);
+
+            System.out.println("adnfbdfbhusdbfuhsdbfu tnsdftu Vfvtq VF"+ requestDto);
+
+
+            // Call service method
+            ResponseEntity<ServiceProviderResponseDto> registeredProvider = serviceProviderService.updateServiceProvider(requestDto,imageFile);
+
+            return registeredProvider;
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // Send that uuid of image on this route to get Image
