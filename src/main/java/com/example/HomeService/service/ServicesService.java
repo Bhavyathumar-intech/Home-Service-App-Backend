@@ -2,6 +2,7 @@ package com.example.HomeService.service;
 
 import com.example.HomeService.dto.servicesDto.ServicesResponseDto;
 import com.example.HomeService.dto.servicesDto.ServicesRegisterDto;
+import com.example.HomeService.dto.servicesDto.ServicesUpdateDto;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.model.Services;
 import com.example.HomeService.repo.ServiceProviderRepository;
@@ -9,6 +10,7 @@ import com.example.HomeService.repo.ServicesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -33,38 +35,6 @@ public class ServicesService {
     public ServicesService(ServicesRepository serviceRepository, ServiceProviderRepository serviceProviderRepository) {
         this.serviceRepository = serviceRepository;
         this.serviceProviderRepository = serviceProviderRepository;
-    }
-
-    private String storeImage(MultipartFile file) throws IOException {
-        // Ensure directory exists
-        File directory = new File(IMAGE_DIRECTORY);
-        if (!directory.exists()) {
-            directory.mkdirs();
-        }
-        // Generate a unique filename
-        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
-        Path filePath = Paths.get(IMAGE_DIRECTORY, fileName);
-        // Save file to disk
-        Files.write(filePath, file.getBytes());
-
-        return fileName;
-    }
-
-    // Convert Services to ServiceResponseDTO
-    private ServicesResponseDto convertToDTO(Services service) {
-        return new ServicesResponseDto(
-                service.getServiceId(),
-                service.getServiceProvider().getCompanyName(),
-                service.getServiceName(),
-                service.getDescription(),
-                service.getCategory(),
-                service.getPrice(),
-                service.getExpectedDuration(),
-                service.getCreatedAt(),
-                service.getUpdatedAt(),
-                service.isStatus(),
-                service.getImage_url()
-        );
     }
 
     public ResponseEntity<?> createService(ServicesRegisterDto dto, MultipartFile imageFile) throws IOException {
@@ -111,21 +81,25 @@ public class ServicesService {
         return service.map(this::convertToDTO);
     }
 
-    public ResponseEntity<ServicesResponseDto> updateService(Long id, ServicesRegisterDto dto) {
-        Services service = serviceRepository.findById(id).orElseThrow(() -> new RuntimeException("Service not found"));
-        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider()).orElseThrow(() -> new RuntimeException("Service provider not found"));
+    public ResponseEntity<ServicesResponseDto> updateService(Long id, ServicesUpdateDto dto, MultipartFile imageFile) throws IOException {
+        Services services = serviceRepository.findById(id).orElseThrow(() -> new RuntimeException("Service not found"));
 
-        service.setServiceProvider(serviceProvider);
-        service.setServiceName(dto.getServiceName());
-        service.setDescription(dto.getDescription());
-        service.setCategory(dto.getCategory());
-        service.setPrice(dto.getPrice());
-        service.setExpectedDuration(dto.getExpectedDuration());
-        service.setStatus(dto.isStatus());
-        service.setImage_url(dto.getImageUrl());
-        service.setUpdatedAt(LocalDate.now());
+//        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider()).orElseThrow(() -> new RuntimeException("Service provider not found"));
 
-        Services updatedService = serviceRepository.save(service);
+        services.setServiceName(dto.getServiceName());
+        services.setDescription(dto.getDescription());
+        services.setCategory(dto.getCategory());
+        services.setPrice(dto.getPrice());
+        services.setExpectedDuration(dto.getExpectedDuration());
+        services.setStatus(dto.isStatus());
+        services.setUpdatedAt(LocalDate.now());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = storeImage(imageFile);
+            services.setImage_url(fileName);
+        }
+//        services.setImage_url(dto.getImageUrl());
+
+        Services updatedService = serviceRepository.save(services);
         return ResponseEntity.ok(convertToDTO(updatedService));
     }
 
@@ -141,5 +115,38 @@ public class ServicesService {
         return services.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
+    }
+
+
+    private String storeImage(MultipartFile file) throws IOException {
+        // Ensure directory exists
+        File directory = new File(IMAGE_DIRECTORY);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        // Generate a unique filename
+        String fileName = UUID.randomUUID().toString() + "_" + file.getOriginalFilename();
+        Path filePath = Paths.get(IMAGE_DIRECTORY, fileName);
+        // Save file to disk
+        Files.write(filePath, file.getBytes());
+
+        return fileName;
+    }
+
+    // Convert Services to ServiceResponseDTO
+    private ServicesResponseDto convertToDTO(Services service) {
+        return new ServicesResponseDto(
+                service.getServiceId(),
+                service.getServiceProvider().getCompanyName(),
+                service.getServiceName(),
+                service.getDescription(),
+                service.getCategory(),
+                service.getPrice(),
+                service.getExpectedDuration(),
+                service.getCreatedAt(),
+                service.getUpdatedAt(),
+                service.isStatus(),
+                service.getImage_url()
+        );
     }
 }

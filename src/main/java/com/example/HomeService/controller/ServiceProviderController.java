@@ -35,7 +35,8 @@ public class ServiceProviderController {
     @Autowired
     private HttpServletResponse httpServletResponse;
 
-    public ServiceProviderController(ServiceProviderService serviceProviderService) {
+    public ServiceProviderController(ServiceProviderService serviceProviderService)
+    {
         this.serviceProviderService = serviceProviderService;
     }
 

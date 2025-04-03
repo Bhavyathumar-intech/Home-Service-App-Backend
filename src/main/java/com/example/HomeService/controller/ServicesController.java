@@ -2,14 +2,22 @@ package com.example.HomeService.controller;
 
 import com.example.HomeService.dto.servicesDto.ServicesRegisterDto;
 import com.example.HomeService.dto.servicesDto.ServicesResponseDto;
+import com.example.HomeService.dto.servicesDto.ServicesUpdateDto;
 import com.example.HomeService.service.ServicesService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 @RestController
@@ -17,13 +25,25 @@ import java.util.List;
 @CrossOrigin
 public class ServicesController {
 
-    @Autowired
-    private ServicesService servicesService;
+    private final ServicesService servicesService;
+    private final ObjectMapper objectMapper;
+
+    public ServicesController(ServicesService servicesService, ObjectMapper objectMapper) {
+        this.servicesService = servicesService;
+        this.objectMapper = objectMapper;
+    }
+
 
     @PostMapping("/register")
-    public ResponseEntity<?> createService(@RequestBody ServicesRegisterDto servicesRegisterDto, MultipartFile imageFile) throws IOException {
-        // Convert DTO to model object
+    public ResponseEntity<?> createService(
+            @RequestPart("ServicesRegisterDto") String servicesRegisterDtoString,
+            @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
+
+        // Convert JSON string to ServiceRegisterDto object
+        ServicesRegisterDto servicesRegisterDto = objectMapper.readValue(servicesRegisterDtoString, ServicesRegisterDto.class);
+
         System.out.println(servicesRegisterDto.toString());
+
         ResponseEntity<?> createdService = servicesService.createService(servicesRegisterDto, imageFile);
         return createdService;
     }
@@ -31,16 +51,24 @@ public class ServicesController {
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllServices() {
         List<ServicesResponseDto> servicesResponseDtos = servicesService.getAllServices();
-        return ResponseEntity.ok().body( servicesResponseDtos);
+        return ResponseEntity.ok().body(servicesResponseDtos);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateService(@PathVariable Long id, @RequestBody ServicesRegisterDto updatedService) {
+    @PutMapping("/update")
+    public ResponseEntity<?> updateService(
+            @RequestPart("ServicesUpdateDto") String updatedService,
+            @RequestPart("imageFile") MultipartFile imageFile) {
         try {
-            ResponseEntity<ServicesResponseDto> service = servicesService.updateService(id, updatedService);
-            return ResponseEntity.ok(service);
+            ServicesUpdateDto servicesUpdateDto = objectMapper.readValue(updatedService, ServicesUpdateDto.class);
+            Long id = servicesUpdateDto.getServiceId();
+            ResponseEntity<ServicesResponseDto> service = servicesService.updateService(id, servicesUpdateDto, imageFile);
+            return service;
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        } catch (JsonMappingException e) {
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -61,6 +89,20 @@ public class ServicesController {
                 return ResponseEntity.notFound().build();  // Return 404 if service is not found
             }
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");  // Return 500 if any unexpected error occurs
+        }
+    }
+
+    // Send that uuid of image on this route to get Image
+    @GetMapping("/image/{filename}")
+    public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
+        Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServicesImage\\" + filename);
+        Resource resource = new UrlResource(imagePath.toUri());
+        if (resource.exists()) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG) // Change if using PNG, etc.
+                    .body(resource);
+        } else {
+            return ResponseEntity.notFound().build();
         }
     }
 
