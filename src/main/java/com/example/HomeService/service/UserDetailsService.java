@@ -46,7 +46,7 @@ public class UserDetailsService {
         return fileName;
     }
 
-    public ResponseEntity<?> saveOrUpdateUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException {
+    public ResponseEntity<?> saveUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException {
         System.out.println(userDetails);
         Optional<Users> userOptional = usersRepository.findById(userId);
         if (userOptional.isEmpty()) {
@@ -77,7 +77,7 @@ public class UserDetailsService {
     }
 
 
-    public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails) {
+    public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails, MultipartFile imageFile) throws IOException {
         Optional<UserDetails> existingDetailsOpt = userDetailsRepository.findByUserId(userId);
 
         if (existingDetailsOpt.isEmpty()) {
@@ -91,10 +91,14 @@ public class UserDetailsService {
         existingDetails.setCountry(updatedDetails.getCountry());
         existingDetails.setZipCode(updatedDetails.getZipCode());
         existingDetails.setDateOfBirth(updatedDetails.getDateOfBirth());
-        existingDetails.setProfilePictureUrl(updatedDetails.getProfilePictureUrl());
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String fileName = storeImage(imageFile);
+            existingDetails.setProfilePictureUrl(fileName);
+        }
+//        existingDetails.setProfilePictureUrl(updatedDetails.getProfilePictureUrl());
 
-        userDetailsRepository.save(existingDetails);
-        return ResponseEntity.ok("User details updated successfully!");
+        UserDetails savedDetails = userDetailsRepository.save(existingDetails);
+        return ResponseEntity.ok(convertToDto(savedDetails));
     }
 
 
@@ -108,15 +112,21 @@ public class UserDetailsService {
         return ResponseEntity.ok("User details deleted successfully for userId: " + userId);
     }
 
-    private UserDetailsRegisterDto convertToDto(UserDetails userDetails) {
-        return new UserDetailsRegisterDto(
-                userDetails.getUser().getId(),
-                userDetails.getAddress(),
-                userDetails.getCity(),
-                userDetails.getState(),
-                userDetails.getCountry(),
-                userDetails.getZipCode(),
-                userDetails.getDateOfBirth()
-        );
+    private UserDetailsResponseDTO convertToDto(UserDetails userDetails) {
+        return new UserDetailsResponseDTO(userDetails);
+//                userDetails.getUdId(),
+//                userDetails.getUser().getId(),
+//                userDetails.getUser().getName(),
+//                userDetails.getUser().getEmail(),
+//                userDetails.getUser().getPhoneNumber(),
+//                userDetails.getAddress(),
+//                userDetails.getCity(),
+//                userDetails.getState(),
+//                userDetails.getCountry(),
+//                userDetails.getZipCode(),
+//                userDetails.getDateOfBirth(),
+//                userDetails.getProfilePictureUrl()
+//        );
     }
+
 }

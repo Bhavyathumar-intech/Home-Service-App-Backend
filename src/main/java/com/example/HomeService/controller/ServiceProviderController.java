@@ -35,16 +35,14 @@ public class ServiceProviderController {
     @Autowired
     private HttpServletResponse httpServletResponse;
 
-    public ServiceProviderController(ServiceProviderService serviceProviderService)
-    {
+    public ServiceProviderController(ServiceProviderService serviceProviderService) {
         this.serviceProviderService = serviceProviderService;
     }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerServiceProvider(
             @RequestPart("ServiceProviderRegisterDto") String requestDtoString,
-            @RequestPart("imageFile") MultipartFile imageFile) throws IOException
-    {
+            @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
         try {
             System.out.println(requestDtoString);
             // Convert JSON string to DTO
@@ -147,21 +145,18 @@ public class ServiceProviderController {
      * @param serviceProvider The service provider object with updated details.
      * @return ResponseEntity with a success message.
      */
-    @PutMapping("/update")
+    @PatchMapping("/update")
     public ResponseEntity<ServiceProviderResponseDto> updateServiceProvider(
-            @RequestPart("ServiceProviderUpdateDto") String serviceProvider ,
-            @RequestPart("imageFile") MultipartFile imageFile ) {
+            @RequestPart("ServiceProviderUpdateDto") String serviceProvider,
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
         try {
             // Convert JSON string to DTO
             ObjectMapper objectMapper = new ObjectMapper();
             ServiceProviderUpdateDto requestDto = objectMapper.readValue(serviceProvider, ServiceProviderUpdateDto.class);
 
-            System.out.println("adnfbdfbhusdbfuhsdbfu tnsdftu Vfvtq VF"+ requestDto);
-
-
             // Call service method
-            ResponseEntity<ServiceProviderResponseDto> registeredProvider = serviceProviderService.updateServiceProvider(requestDto,imageFile);
+            ResponseEntity<ServiceProviderResponseDto> registeredProvider = serviceProviderService.updateServiceProvider(requestDto, imageFile);
 
             return registeredProvider;
         } catch (IOException e) {
@@ -170,16 +165,43 @@ public class ServiceProviderController {
     }
 
     // Send that uuid of image on this route to get Image
-    @GetMapping("/image/{filename}")
+    @GetMapping("/{filename}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
         Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage\\" + filename);
         Resource resource = new UrlResource(imagePath.toUri());
-        if (resource.exists()) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG) // Change if using PNG, etc.
-                    .body(resource);
-        } else {
+
+        if (!resource.exists()) {
             return ResponseEntity.notFound().build();
         }
+
+        // Get file extension
+        String fileExtension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+
+        // Determine media type based on extension
+        MediaType mediaType;
+        switch (fileExtension) {
+            case "png":
+                mediaType = MediaType.IMAGE_PNG;
+                break;
+            case "gif":
+                mediaType = MediaType.IMAGE_GIF;
+                break;
+            case "bmp":
+                mediaType = MediaType.parseMediaType("image/bmp");
+                break;
+            case "webp":
+                mediaType = MediaType.parseMediaType("image/webp");
+                break;
+            case "jpg":
+            case "jpeg":
+                mediaType = MediaType.IMAGE_JPEG;
+                break;
+            default:
+                mediaType = MediaType.APPLICATION_OCTET_STREAM; // Fallback for unknown types
+        }
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(resource);
     }
 }

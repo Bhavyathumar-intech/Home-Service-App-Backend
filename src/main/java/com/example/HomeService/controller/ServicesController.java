@@ -54,10 +54,10 @@ public class ServicesController {
         return ResponseEntity.ok().body(servicesResponseDtos);
     }
 
-    @PutMapping("/update")
+    @PatchMapping("/update")
     public ResponseEntity<?> updateService(
             @RequestPart("ServicesUpdateDto") String updatedService,
-            @RequestPart("imageFile") MultipartFile imageFile) {
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
         try {
             ServicesUpdateDto servicesUpdateDto = objectMapper.readValue(updatedService, ServicesUpdateDto.class);
             Long id = servicesUpdateDto.getServiceId();
@@ -97,13 +97,40 @@ public class ServicesController {
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
         Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServicesImage\\" + filename);
         Resource resource = new UrlResource(imagePath.toUri());
-        if (resource.exists()) {
-            return ResponseEntity.ok()
-                    .contentType(MediaType.IMAGE_JPEG) // Change if using PNG, etc.
-                    .body(resource);
-        } else {
+
+        if (!resource.exists()) {
             return ResponseEntity.notFound().build();
         }
+
+        // Get file extension
+        String fileExtension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+
+        // Determine media type based on extension
+        MediaType mediaType;
+        switch (fileExtension) {
+            case "png":
+                mediaType = MediaType.IMAGE_PNG;
+                break;
+            case "gif":
+                mediaType = MediaType.IMAGE_GIF;
+                break;
+            case "bmp":
+                mediaType = MediaType.parseMediaType("image/bmp");
+                break;
+            case "webp":
+                mediaType = MediaType.parseMediaType("image/webp");
+                break;
+            case "jpg":
+            case "jpeg":
+                mediaType = MediaType.IMAGE_JPEG;
+                break;
+            default:
+                mediaType = MediaType.APPLICATION_OCTET_STREAM; // Fallback for unknown types
+        }
+
+        return ResponseEntity.ok()
+                .contentType(mediaType)
+                .body(resource);
     }
 
 }
