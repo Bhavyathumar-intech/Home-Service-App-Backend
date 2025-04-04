@@ -40,12 +40,26 @@ public class UserDetailsResponseDTO {
         this.profilePictureUrl = userDetails.getProfilePictureUrl();
     }
 
-    private String formatDate(Date date) {
-        if (date == null) {
-            return null;
+//    private String formatDate(Date date) {
+//        if (date == null) {
+//            return null;
+//        }
+//        // Convert java.util.Date to LocalDate
+//        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+//        return localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+//    }
+
+    public String formatDate(Date date) {
+        if (date instanceof java.sql.Date) {
+            return ((java.sql.Date) date).toLocalDate().toString();
+        } else {
+            return date.toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate()
+                    .toString();
         }
-        // Convert java.util.Date to LocalDate
-        LocalDate localDate = date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        return localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
+
+
+
 }
