@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/services")
@@ -78,19 +80,37 @@ public class ServicesController {
         return ResponseEntity.ok(servicesService.getServicesByServiceProviderId(providerId));
     }
 
+//    @DeleteMapping("/{id}")
+//    public ResponseEntity<?> deleteService(@PathVariable Long id) {
+//        try {
+//            servicesService.deleteService(id);  // Try to delete the service
+//            return ResponseEntity.ok("Service with ID " + id + " deleted successfully.");  // Return 200 with a success message
+//        } catch (RuntimeException e) {
+//            // Catch the exception thrown when service is not found and return 404
+//            if (e.getMessage().contains("Service not found")) {
+//                return ResponseEntity.notFound().build();  // Return 404 if service is not found
+//            }
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");  // Return 500 if any unexpected error occurs
+//        }
+//    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteService(@PathVariable Long id) {
+    public ResponseEntity<Map<String, String>> deleteService(@PathVariable Long id) {
+        Map<String, String> response = new HashMap<>();
         try {
             servicesService.deleteService(id);  // Try to delete the service
-            return ResponseEntity.ok("Service with ID " + id + " deleted successfully.");  // Return 200 with a success message
+            response.put("success", "Service with ID " + id + " deleted successfully.");
+            return ResponseEntity.ok(response);  // Return 200 with a success message
         } catch (RuntimeException e) {
-            // Catch the exception thrown when service is not found and return 404
             if (e.getMessage().contains("Service not found")) {
-                return ResponseEntity.notFound().build();  // Return 404 if service is not found
+                response.put("fail", "Service with ID " + id + " not found.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);  // Return 404 with fail message
             }
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");  // Return 500 if any unexpected error occurs
+            response.put("fail", "An unexpected error occurred.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);  // Return 500 with fail message
         }
     }
+
 
     // Send that uuid of image on this route to get Image
     @GetMapping("/image/{filename}")

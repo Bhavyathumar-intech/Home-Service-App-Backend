@@ -4,7 +4,6 @@ import com.example.HomeService.dto.userDetailsDto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.service.UserDetailsService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,7 +91,7 @@ public class UserDetailsController {
     // Send that uuid of image on this route to get Image
     @GetMapping("/image/{filename}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
-        Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\Image\\" + filename);
+        Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\UserDetailsImage\\" + filename);
         Resource resource = new UrlResource(imagePath.toUri());
 
         if (!resource.exists()) {

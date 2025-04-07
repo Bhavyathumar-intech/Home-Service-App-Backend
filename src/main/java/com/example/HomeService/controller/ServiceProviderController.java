@@ -165,7 +165,7 @@ public class ServiceProviderController {
     }
 
     // Send that uuid of image on this route to get Image
-    @GetMapping("/{filename}")
+    @GetMapping("/image/{filename}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
         Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage\\" + filename);
         Resource resource = new UrlResource(imagePath.toUri());
