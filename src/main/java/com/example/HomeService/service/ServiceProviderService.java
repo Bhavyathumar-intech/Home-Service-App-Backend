@@ -104,10 +104,10 @@ public class ServiceProviderService {
 
         //  Update the auth cookie with the new token
         ResponseCookie updatedCookie = ResponseCookie.from("authToken", newJwtToken)
-                .httpOnly(true)
-                .secure(true)
+                .httpOnly(false)
+                .secure(false)
                 .path("/")
-                .sameSite("Strict")  //  Prevent CSRF attacks
+                .sameSite("Lax")  //  Prevent CSRF attacks
                 .build();
         response.addHeader("Set-Cookie", updatedCookie.toString());
 
