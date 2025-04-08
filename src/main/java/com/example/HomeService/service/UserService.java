@@ -1,10 +1,13 @@
 package com.example.HomeService.service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.example.HomeService.dto.userDto.UserRegisterDto;
 import com.example.HomeService.dto.userDto.UserResponseDto;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
@@ -62,7 +65,10 @@ public class UserService {
     }
 
     public ResponseEntity<?> verify(Users user, HttpServletResponse response) {
+
         Users dbUser = repo.findByEmail(user.getEmail());
+        System.out.println("in Service" + user.toString());
+        System.out.println(dbUser.toString());
 
         if (dbUser == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
@@ -104,6 +110,7 @@ public class UserService {
                 UserResponseDto loginResponse = new UserResponseDto(
                         dbUser.getId(),
                         dbUser.getEmail(),
+                        dbUser.getName(),
                         dbUser.getRole().toString(),
                         serviceProviderId,
                         jwtToken
@@ -121,5 +128,24 @@ public class UserService {
 
     public List<Users> getData() {
         return repo.findAll();
+    }
+
+    @Transactional
+    public ResponseEntity<Map<String, String>> deleteUser(Long userId) {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            Users user = repo.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + userId));
+
+
+            repo.deleteById(userId);
+            response.put("success", "Service Provider deleted successfully");
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+        } catch (RuntimeException e) {
+            response.put("fail service", e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
     }
 }

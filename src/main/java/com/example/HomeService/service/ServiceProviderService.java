@@ -223,14 +223,26 @@ public class ServiceProviderService {
      * @param providerId The ID of the service provider to delete.
      */
     @Transactional
-    public void deleteServiceProvider(Long providerId) {
-        ServiceProvider serviceProvider = serviceProviderRepository.findById(providerId)
-                .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + providerId));
+    public ResponseEntity<Map<String, String>> deleteServiceProvider(Long providerId) {
+        Map<String, String> response = new HashMap<>();
 
-        Users user = serviceProvider.getUser();
-        if (user.getRole() != Role.PROVIDER) {
-            throw new RuntimeException("User does not have the PROVIDER role and cannot be deleted as a service provider");
+        try {
+            ServiceProvider serviceProvider = serviceProviderRepository.findById(providerId)
+                    .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + providerId));
+
+            Users user = serviceProvider.getUser();
+            if (user.getRole() != Role.PROVIDER) {
+                throw new RuntimeException("User does not have the PROVIDER role and cannot be deleted as a service provider");
+            }
+
+            serviceProviderRepository.deleteById(providerId);
+            response.put("success", "Service provider deleted successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (RuntimeException e) {
+            response.put("fail", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
         }
-        serviceProviderRepository.deleteById(providerId);
     }
+
 }

@@ -126,7 +126,7 @@ public class ServiceProviderController {
      * @return ResponseEntity with a success or error message.
      */
     @DeleteMapping("/delete")
-    public ResponseEntity<String> deleteServiceProvider(@RequestBody Map<String, Long> requestBody) {
+    public ResponseEntity<?> deleteServiceProvider(@RequestBody Map<String, Long> requestBody) {
         Long providerId = requestBody.get("serviceProviderId"); // Extracting 'serviceProviderId' instead of 'providerId'
 
         if (providerId == null) {
@@ -134,9 +134,7 @@ public class ServiceProviderController {
         }
 
         System.out.println("Delete Accessed with ID: " + providerId);
-        serviceProviderService.deleteServiceProvider(providerId);
-
-        return ResponseEntity.ok("Service Provider deleted successfully");
+        return serviceProviderService.deleteServiceProvider(providerId);
     }
 
     /**

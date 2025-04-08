@@ -1,7 +1,6 @@
 package com.example.HomeService.service;
 
 import com.example.HomeService.dto.userDetailsDto.UserDetailsResponseDTO;
-import com.example.HomeService.dto.userDetailsDto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.repo.UserDetailsRepository;
@@ -17,6 +16,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -76,7 +77,6 @@ public class UserDetailsService {
         return ResponseEntity.ok(userDetailsResponseDTO);
     }
 
-
     public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails, MultipartFile imageFile) throws IOException {
         Optional<UserDetails> existingDetailsOpt = userDetailsRepository.findByUserId(userId);
 
@@ -95,38 +95,40 @@ public class UserDetailsService {
             String fileName = storeImage(imageFile);
             existingDetails.setProfilePictureUrl(fileName);
         }
-//        existingDetails.setProfilePictureUrl(updatedDetails.getProfilePictureUrl());
 
         UserDetails savedDetails = userDetailsRepository.save(existingDetails);
         return ResponseEntity.ok(convertToDto(savedDetails));
     }
 
 
+//    public ResponseEntity<?> deleteUserDetails(Long userId) {
+//        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);
+//        if (userDetailsOptional.isEmpty()) {
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found for userId: " + userId);
+//        }
+//
+//        userDetailsRepository.delete(userDetailsOptional.get());
+//        return ResponseEntity.ok("User details deleted successfully for userId: " + userId);
+//    }
+
     public ResponseEntity<?> deleteUserDetails(Long userId) {
         Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);
+
         if (userDetailsOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found for userId: " + userId);
+            Map<String, String> response = new HashMap<>();
+            response.put("error", "User details not found for userId: " + userId);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
         }
 
         userDetailsRepository.delete(userDetailsOptional.get());
-        return ResponseEntity.ok("User details deleted successfully for userId: " + userId);
+
+        Map<String, String> response = new HashMap<>();
+        response.put("success", "User details deleted successfully for userId: " + userId);
+        return ResponseEntity.ok(response);
     }
+
 
     private UserDetailsResponseDTO convertToDto(UserDetails userDetails) {
         return new UserDetailsResponseDTO(userDetails);
-//                userDetails.getUdId(),
-//                userDetails.getUser().getId(),
-//                userDetails.getUser().getName(),
-//                userDetails.getUser().getEmail(),
-//                userDetails.getUser().getPhoneNumber(),
-//                userDetails.getAddress(),
-//                userDetails.getCity(),
-//                userDetails.getState(),
-//                userDetails.getCountry(),
-//                userDetails.getZipCode(),
-//                userDetails.getDateOfBirth(),
-//                userDetails.getProfilePictureUrl()
-//        );
     }
-
 }

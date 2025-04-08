@@ -1,5 +1,6 @@
 package com.example.HomeService.controller;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,13 +33,12 @@ public class UserController {
     @PostMapping("/auth/login")
     public ResponseEntity<?> login(@RequestBody UserLoginDto userLoginDto) {
         // Convert DTO to Entity
+
         Users user = new Users();
         user.setEmail(userLoginDto.getEmail());
         user.setPassword(userLoginDto.getPassword());
         user.setRole(userLoginDto.getRole());
 
-        System.out.println(user.getPassword());
-        System.out.println(user.toString());
         // Call the service layer for verification
         ResponseEntity<?> responseEntity = service.verify(user, response);
 
@@ -53,4 +53,18 @@ public class UserController {
     public List<Users> getData() {
         return service.getData();
     }
+
+    @DeleteMapping("/auth/delete/{id}")
+    public ResponseEntity<Map<String, String>> deleteUser(@PathVariable Long id) {
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            ; // Call your service method
+            return ResponseEntity.ok(service.deleteUser(id).getBody());
+        } catch (RuntimeException e) {
+            response.put("Method fail", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
 }
