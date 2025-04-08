@@ -49,13 +49,14 @@ public class ServiceProviderController {
             ObjectMapper objectMapper = new ObjectMapper();
             ServiceProviderRegisterDto requestDto = objectMapper.readValue(requestDtoString, ServiceProviderRegisterDto.class);
 
-            System.out.println(requestDto);
+            System.out.println("ty" + requestDto);
 
 
             // Call service method
             ResponseEntity<?> registeredProvider = serviceProviderService.registerServiceProvider(requestDto, httpServletResponse, imageFile);
 
-            return ResponseEntity.ok(registeredProvider);
+//            return ResponseEntity.ok(registeredProvider);
+            return registeredProvider;
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid JSON format"));
         } catch (RuntimeException ex) {
