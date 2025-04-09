@@ -16,6 +16,8 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     // Find all orders by a specific user
     List<Orders> findByCustomer(Users user);
 
+
+
     // Find all orders for a specific service provider
     List<Orders> findByServiceProvider(ServiceProvider serviceProvider);
 
