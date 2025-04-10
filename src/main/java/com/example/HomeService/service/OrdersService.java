@@ -1,11 +1,18 @@
 package com.example.HomeService.service;
 
 import com.example.HomeService.dto.OrdersDto.*;
+import com.example.HomeService.exceptions.OrderNotFoundException;
+import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.*;
 import com.example.HomeService.repo.*;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -18,48 +25,80 @@ public class OrdersService {
     private final ServiceProviderRepository serviceProviderRepository;
     private final UserDetailsRepository userDetailsRepository;
     private final ServicesRepository servicesRepository;
+    private final JavaMailSender emailSender;
 
-    public OrdersService(OrdersRepository ordersRepository, UserRepository usersRepository, ServiceProviderRepository serviceProviderRepository, UserDetailsRepository userDetailsRepository, ServicesRepository servicesRepository) {
+    public OrdersService(OrdersRepository ordersRepository, UserRepository usersRepository, ServiceProviderRepository serviceProviderRepository, UserDetailsRepository userDetailsRepository, ServicesRepository servicesRepository, JavaMailSender emailSender) {
         this.ordersRepository = ordersRepository;
         this.usersRepository = usersRepository;
         this.serviceProviderRepository = serviceProviderRepository;
         this.userDetailsRepository = userDetailsRepository;
         this.servicesRepository = servicesRepository;
+        this.emailSender = emailSender;
     }
 
+    @Transactional
     public ResponseEntity<OrderResponseDto> createOrder(OrderRegisterDto dto) {
         Orders order = new Orders();
 
-        Users user = usersRepository.findById(dto.getUserId()).orElseThrow();
-        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProviderId()).orElseThrow();
-        UserDetails userDetails = userDetailsRepository.findById(dto.getUserDetailsId()).orElseThrow();
-        Services services = servicesRepository.findById(dto.getServicesId()).orElseThrow();
+        Users user = usersRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
+
+        Services servicesProviderID = servicesRepository.findById(dto.getServicesId()).get();
+        ServiceProvider serviceProvider = serviceProviderRepository.findById(servicesProviderID.getServiceProvider().getServiceProviderId())
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider", servicesProviderID.getServiceProvider().getServiceProviderId()));
+
+        UserDetails userDetailsid = userDetailsRepository.findByUserId(dto.getUserId()).get();
+
+        UserDetails userDetails = userDetailsRepository.findById(userDetailsid.getUdId())
+                .orElseThrow(() -> new ResourceNotFoundException("UserDetails", userDetailsid.getUdId()));
+
+        Services services = servicesRepository.findById(dto.getServicesId())
+                .orElseThrow(() -> new ResourceNotFoundException("Services", dto.getServicesId()));
 
         order.setCustomer(user);
         order.setServiceProvider(serviceProvider);
         order.setUserDetails(userDetails);
         order.setServices(services);
         order.setScheduledDateTime(dto.getScheduledDateTime());
+        order.setOrderPrice(dto.getOrderPrice());
         order.setPaymentMethod(dto.getPaymentMethod());
-        order.setStatus(OrderStatus.PENDING); // default status
+        order.setStatus(OrderStatus.PENDING);
 
         Orders savedOrder = ordersRepository.save(order);
+        OrderResponseDto response = convertToResponseDto(savedOrder);
+        OrderEmailDto emailDto = convertToEmailDto(savedOrder);
 
-        return ResponseEntity.ok(convertToResponseDto(savedOrder));
+        // Sending to User
+        sendSummaryEmail(order.getCustomer().getEmail(), emailDto);
+        // Sending to Provider
+        sendSummaryEmail(order.getServiceProvider().getUser().getEmail(), emailDto);
+        return ResponseEntity.ok(response);
     }
 
+    @Transactional
     public ResponseEntity<OrderResponseDto> updateOrder(OrderUpdateDto dto) {
-        Orders order = ordersRepository.findById(dto.getOrderId()).orElseThrow();
+        Orders order = ordersRepository.findById(dto.getOrderId()).orElseThrow(() -> new ResourceNotFoundException("Order ID Not Found", dto.getOrderId()));
+
 
         if (dto.getScheduledDateTime() != null) order.setScheduledDateTime(dto.getScheduledDateTime());
         if (dto.getStatus() != null) order.setStatus(dto.getStatus());
         if (dto.getPaymentMethod() != null) order.setPaymentMethod(dto.getPaymentMethod());
 
+        order.setOrderedAt(LocalDate.now());
         Orders updatedOrder = ordersRepository.save(order);
 
-        return ResponseEntity.ok(convertToResponseDto(updatedOrder));
+        OrderResponseDto response = convertToResponseDto(updatedOrder);
+        OrderEmailDto emailDto = convertToEmailDto(order);
+
+        // Sending to User
+        sendSummaryEmail(order.getCustomer().getEmail(), emailDto);
+        // Sending to Provider
+        sendSummaryEmail(order.getServiceProvider().getUser().getEmail(), emailDto);
+
+        return ResponseEntity.ok(response);
     }
 
+    @Transactional
     public ResponseEntity<?> deleteOrder(Long id) {
         try {
             if (!ordersRepository.existsById(id)) {
@@ -87,7 +126,7 @@ public class OrdersService {
     }
 
     public ResponseEntity<List<OrderResponseDto>> getOrdersByServiceProviderId(Long serviceProviderId) {
-        List<Orders> orders = ordersRepository.findByServiceProviderId(serviceProviderId);
+        List<Orders> orders = ordersRepository.findByServiceProvider_ServiceProviderId(serviceProviderId);
         List<OrderResponseDto> response = orders.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
@@ -136,14 +175,39 @@ public class OrdersService {
         return ResponseEntity.ok(response);
     }
 
+    // For Updating Only OrderStauts
+    @Transactional
+    public UpdateOrderStatusResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+
+        order.setStatus(newStatus);
+        order.setUpdatedAt(LocalDate.now());
+        ordersRepository.save(order);
+
+        OrderEmailDto responseDto = convertToEmailDto(order);
+        // Async Method for sending Email
+        sendSummaryEmail(order.getCustomer().getEmail(), responseDto);
+
+        return new UpdateOrderStatusResponse("Order status updated successfully ", order.getStatus().name());
+    }
 
 
-    // --- Helper to map entity to response DTO ---
+    @Async
+    private void sendSummaryEmail(String email, OrderEmailDto responseDto) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setTo(email);
+        message.setSubject("Order Summary of OrderId " + responseDto.getOrderId());
+        message.setText(responseDto.toString());
+        emailSender.send(message);
+    }
+
     private OrderResponseDto convertToResponseDto(Orders order) {
         return new OrderResponseDto(
                 order.getId(),
                 order.getCustomer().getId(),
                 order.getCustomer().getName(),
+                order.getCustomer().getPhoneNumber(),
                 order.getServiceProvider().getServiceProviderId(),
                 order.getServiceProvider().getCompanyName(),
                 order.getUserDetails().getUdId(),
@@ -152,6 +216,25 @@ public class OrdersService {
                 order.getServices().getServiceName(),
                 order.getScheduledDateTime(),
                 order.getStatus(),
+                order.getOrderPrice(),
+                order.getPaymentMethod(),
+                order.getOrderedAt(),
+                order.getUpdatedAt()
+        );
+    }
+
+    private OrderEmailDto convertToEmailDto(Orders order) {
+        return new OrderEmailDto(
+                order.getId(),
+                order.getCustomer().getName(),
+                order.getCustomer().getPhoneNumber(),
+                order.getServiceProvider().getCompanyName(),
+                order.getServiceProvider().getCompanyNumber(),
+                order.getUserDetails().getAddress(),
+                order.getServices().getServiceName(),
+                order.getScheduledDateTime(),
+                order.getStatus(),
+                order.getOrderPrice(),
                 order.getPaymentMethod(),
                 order.getOrderedAt(),
                 order.getUpdatedAt()

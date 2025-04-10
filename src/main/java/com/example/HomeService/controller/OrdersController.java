@@ -24,9 +24,18 @@ public class OrdersController {
         return ordersService.createOrder(dto);
     }
 
-    @PutMapping("/update-order")
+    @PatchMapping("/update-order")
     public ResponseEntity<OrderResponseDto> updateOrder(@RequestBody OrderUpdateDto dto) {
         return ordersService.updateOrder(dto);
+    }
+
+    @PatchMapping("/orders/{orderId}/status")
+    public ResponseEntity<UpdateOrderStatusResponse> updateOrderStatus(
+            @PathVariable Long orderId,
+            @RequestParam OrderStatus status) {
+
+        UpdateOrderStatusResponse response = ordersService.updateOrderStatus(orderId, status);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/delete/{id}")

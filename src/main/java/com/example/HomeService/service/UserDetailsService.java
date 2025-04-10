@@ -112,7 +112,7 @@ public class UserDetailsService {
 //    }
 
     public ResponseEntity<?> deleteUserDetails(Long userId) {
-        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);
+        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUserId(userId);
 
         if (userDetailsOptional.isEmpty()) {
             Map<String, String> response = new HashMap<>();

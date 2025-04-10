@@ -3,6 +3,7 @@ package com.example.HomeService.dto.OrdersDto;
 import com.example.HomeService.model.OrderStatus;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -16,6 +17,7 @@ public class OrderResponseDto {
 
     private Long customerId;
     private String customerName;
+    private String customerNumber;
 
     private Long serviceProviderId;
     private String serviceProviderName;
@@ -30,6 +32,7 @@ public class OrderResponseDto {
 
     private OrderStatus status;
 
+    private BigDecimal orderPrice;
     private String paymentMethod;
 
     private LocalDate orderedAt;
