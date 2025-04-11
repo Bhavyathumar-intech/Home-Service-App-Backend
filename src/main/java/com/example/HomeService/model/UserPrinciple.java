@@ -31,9 +31,11 @@ public class UserPrinciple implements UserDetails {
      *
      * @return A collection containing the user's role as a granted authority.
      */
+
+    //For Using PreAuthorize added ROLE_
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()));
+        return Collections.singletonList(new SimpleGrantedAuthority("ROLE_"+ user.getRole().name()));
     }
 
     /**

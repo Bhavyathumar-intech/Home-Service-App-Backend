@@ -14,6 +14,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,14 +30,16 @@ import java.util.Map;
 @CrossOrigin
 @RestController
 @RequestMapping("/api/service-providers")
+@PreAuthorize("hasAnyRole('PROVIDER')")
 public class ServiceProviderController {
 
     private final ServiceProviderService serviceProviderService;
-    @Autowired
-    private HttpServletResponse httpServletResponse;
 
-    public ServiceProviderController(ServiceProviderService serviceProviderService) {
+    private final HttpServletResponse httpServletResponse;
+
+    public ServiceProviderController(ServiceProviderService serviceProviderService, HttpServletResponse httpServletResponse) {
         this.serviceProviderService = serviceProviderService;
+        this.httpServletResponse = httpServletResponse;
     }
 
     @PostMapping("/register")
@@ -63,7 +66,6 @@ public class ServiceProviderController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", ex.getMessage()));
         }
     }
-
 
     /**
      * Retrieves all service providers.

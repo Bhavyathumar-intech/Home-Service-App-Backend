@@ -9,6 +9,9 @@ import com.example.HomeService.dto.userDto.UserLoginDto;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.HomeService.model.Users;
@@ -49,7 +52,7 @@ public class UserController {
         return responseEntity;
     }
 
-    @GetMapping("/auth/AllData")
+    @GetMapping("/api/AllData")
     public List<Users> getData() {
         return service.getData();
     }

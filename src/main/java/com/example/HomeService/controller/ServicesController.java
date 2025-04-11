@@ -11,6 +11,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -25,6 +26,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/services")
 @CrossOrigin
+@PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
 public class ServicesController {
 
     private final ServicesService servicesService;
@@ -50,6 +52,7 @@ public class ServicesController {
         return createdService;
     }
 
+    @PreAuthorize("hasAnyRole('USER')")
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllServices() {
         List<ServicesResponseDto> servicesResponseDtos = servicesService.getAllServices();
