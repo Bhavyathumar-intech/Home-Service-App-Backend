@@ -1,7 +1,5 @@
-package com.example.HomeService.dto.servicesDto;
+package com.example.HomeService.dto.servicesdto;
 
-import com.example.HomeService.model.ServiceProvider;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

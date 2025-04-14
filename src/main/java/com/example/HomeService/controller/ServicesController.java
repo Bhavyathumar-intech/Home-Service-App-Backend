@@ -1,8 +1,8 @@
 package com.example.HomeService.controller;
 
-import com.example.HomeService.dto.servicesDto.ServicesRegisterDto;
-import com.example.HomeService.dto.servicesDto.ServicesResponseDto;
-import com.example.HomeService.dto.servicesDto.ServicesUpdateDto;
+import com.example.HomeService.dto.servicesdto.ServicesRegisterDto;
+import com.example.HomeService.dto.servicesdto.ServicesResponseDto;
+import com.example.HomeService.dto.servicesdto.ServicesUpdateDto;
 import com.example.HomeService.service.ServicesService;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;

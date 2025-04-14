@@ -1,4 +1,4 @@
-package com.example.HomeService.dto.userDto;
+package com.example.HomeService.dto.userdto;
 
 import lombok.*;
 

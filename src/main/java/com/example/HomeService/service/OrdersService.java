@@ -1,10 +1,10 @@
 package com.example.HomeService.service;
 
-import com.example.HomeService.dto.OrdersDto.*;
+import com.example.HomeService.dto.ordersdto.*;
 import com.example.HomeService.exceptions.OrderNotFoundException;
 import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.*;
-import com.example.HomeService.repo.*;
+import com.example.HomeService.repository.*;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -13,7 +13,6 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -59,7 +58,8 @@ public class OrdersService {
         order.setServiceProvider(serviceProvider);
         order.setUserDetails(userDetails);
         order.setServices(services);
-        order.setScheduledDateTime(dto.getScheduledDateTime());
+        order.setScheduledDate(dto.getScheduledDate());
+        order.setScheduledTime(dto.getScheduledTime());
         order.setOrderPrice(dto.getOrderPrice());
         order.setPaymentMethod(dto.getPaymentMethod());
         order.setStatus(OrderStatus.PENDING);
@@ -80,9 +80,15 @@ public class OrdersService {
         Orders order = ordersRepository.findById(dto.getOrderId()).orElseThrow(() -> new ResourceNotFoundException("Order ID Not Found", dto.getOrderId()));
 
 
-        if (dto.getScheduledDateTime() != null) order.setScheduledDateTime(dto.getScheduledDateTime());
+        if (dto.getScheduledDate() != null) {
+            order.setScheduledDate(dto.getScheduledDate());
+        }
+        if (dto.getScheduledTime() != null) {
+            order.setScheduledTime(dto.getScheduledTime());
+        }
         if (dto.getStatus() != null) order.setStatus(dto.getStatus());
         if (dto.getPaymentMethod() != null) order.setPaymentMethod(dto.getPaymentMethod());
+        order.setUpdatedAt(LocalDate.now());
 
         order.setOrderedAt(LocalDate.now());
         Orders updatedOrder = ordersRepository.save(order);
@@ -167,17 +173,9 @@ public class OrdersService {
         return ResponseEntity.ok(response);
     }
 
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByScheduleRange(LocalDateTime start, LocalDateTime end) {
-        List<Orders> orders = ordersRepository.findByScheduledDateTimeBetween(start, end);
-        List<OrderResponseDto> response = orders.stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
     // For Updating Only OrderStauts
     @Transactional
-    public UpdateOrderStatusResponse updateOrderStatus(Long orderId, OrderStatus newStatus) {
+    public ResponseEntity<OrderResponseDto> updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Orders order = ordersRepository.findById(orderId)
                 .orElseThrow(() -> new OrderNotFoundException("Order not found"));
 
@@ -189,7 +187,9 @@ public class OrdersService {
         // Async Method for sending Email
         sendSummaryEmail(order.getCustomer().getEmail(), responseDto);
 
-        return new UpdateOrderStatusResponse("Order status updated successfully ", order.getStatus().name());
+        OrderResponseDto ord = convertToResponseDto(order);
+
+        return ResponseEntity.ok(ord);
     }
 
 
@@ -210,11 +210,13 @@ public class OrdersService {
                 order.getCustomer().getPhoneNumber(),
                 order.getServiceProvider().getServiceProviderId(),
                 order.getServiceProvider().getCompanyName(),
+                order.getServiceProvider().getCompanyNumber(),
                 order.getUserDetails().getUdId(),
                 order.getUserDetails().getAddress(),
                 order.getServices().getServiceId(),
                 order.getServices().getServiceName(),
-                order.getScheduledDateTime(),
+                order.getScheduledDate(),
+                order.getScheduledTime(),
                 order.getStatus(),
                 order.getOrderPrice(),
                 order.getPaymentMethod(),
@@ -232,7 +234,8 @@ public class OrdersService {
                 order.getServiceProvider().getCompanyNumber(),
                 order.getUserDetails().getAddress(),
                 order.getServices().getServiceName(),
-                order.getScheduledDateTime(),
+                order.getScheduledDate(),
+                order.getScheduledTime(),
                 order.getStatus(),
                 order.getOrderPrice(),
                 order.getPaymentMethod(),

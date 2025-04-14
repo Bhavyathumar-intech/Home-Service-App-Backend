@@ -6,6 +6,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "orders")
@@ -43,8 +44,12 @@ public class Orders {
     @JoinColumn(name = "service_name", nullable = false)
     private Services services;
 
-    @Column(name = "scheduled_date_time", nullable = false)
-    private LocalDateTime scheduledDateTime;
+    @Temporal(TemporalType.DATE)
+    @Column(name = "scheduled_date", nullable = false)
+    private LocalDate scheduledDate;
+
+    @Column(name = "scheduled_time", nullable = false)
+    private LocalTime scheduledTime;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
@@ -52,6 +57,8 @@ public class Orders {
 
     @Column(nullable = false)
     private BigDecimal orderPrice;
+
+    @Column(nullable = false)
     private String paymentMethod;
 
     /**
@@ -72,7 +79,6 @@ public class Orders {
     @PrePersist
     protected void onCreate() {
         this.orderedAt = LocalDate.now();
-        this.updatedAt = this.orderedAt;
     }
 
     @PreUpdate

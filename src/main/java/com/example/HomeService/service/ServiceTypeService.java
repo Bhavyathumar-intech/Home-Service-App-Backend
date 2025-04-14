@@ -1,7 +1,7 @@
 package com.example.HomeService.service;
 
 import com.example.HomeService.model.ServiceType;
-import com.example.HomeService.repo.ServiceTypeRepository;
+import com.example.HomeService.repository.ServiceTypeRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

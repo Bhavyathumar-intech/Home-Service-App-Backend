@@ -1,17 +1,17 @@
-package com.example.HomeService.dto.servicesDto;
+package com.example.HomeService.dto.servicesdto;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
-//@AllArgsConstructor
-public class ServicesRegisterDto {
+public class ServicesUpdateDto {
 
-    private Long serviceProvider;
+    private Long serviceId;
     private String serviceName;
     private String description;
     private String category;
@@ -20,8 +20,11 @@ public class ServicesRegisterDto {
     private boolean status;
     private String imageUrl;
 
-    public ServicesRegisterDto(Long serviceProvider, String serviceName, String description, String category, BigDecimal price, Integer expectedDuration, boolean status, String imageUrl) {
-        this.serviceProvider = serviceProvider;
+    // Constructor to map entity to DTO
+    public ServicesUpdateDto(Long serviceId, String serviceName,String description, String category, BigDecimal price, Integer expectedDuration,
+                             boolean status, String imageUrl)
+    {
+        this.serviceId = serviceId;
         this.serviceName = serviceName;
         this.description = description;
         this.category = category;
@@ -31,6 +34,3 @@ public class ServicesRegisterDto {
         this.imageUrl = imageUrl;
     }
 }
-
-
-

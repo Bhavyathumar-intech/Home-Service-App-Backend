@@ -1,4 +1,4 @@
-package com.example.HomeService.dto.userDto;
+package com.example.HomeService.dto.userdto;
 
 import com.example.HomeService.model.Role;
 import lombok.AllArgsConstructor;

@@ -1,9 +1,11 @@
-package com.example.HomeService.dto.OrdersDto;
+package com.example.HomeService.dto.ordersdto;
 
 import com.example.HomeService.model.OrderStatus;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -14,7 +16,8 @@ public class OrderUpdateDto {
 
     private Long orderId; // Required to identify the order
 
-    private LocalDateTime scheduledDateTime;
+    private LocalDate scheduledDate;
+    private LocalTime scheduledTime;
 
     private OrderStatus status;
 

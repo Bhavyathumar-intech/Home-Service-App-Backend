@@ -1,6 +1,6 @@
 package com.example.HomeService.controller;
 
-import com.example.HomeService.dto.userDetailsDto.UserDetailsRegisterDto;
+import com.example.HomeService.dto.userdetailsdto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.service.UserDetailsService;

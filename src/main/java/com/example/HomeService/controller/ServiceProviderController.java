@@ -1,14 +1,13 @@
 package com.example.HomeService.controller;
 
-import com.example.HomeService.dto.serviceProviderDto.ServiceProviderRegisterDto;
-import com.example.HomeService.dto.serviceProviderDto.ServiceProviderResponseDto;
-import com.example.HomeService.dto.serviceProviderDto.ServiceProviderUpdateDto;
+import com.example.HomeService.dto.serviceproviderdto.ServiceProviderRegisterDto;
+import com.example.HomeService.dto.serviceproviderdto.ServiceProviderResponseDto;
+import com.example.HomeService.dto.serviceproviderdto.ServiceProviderUpdateDto;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.service.ServiceProviderService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
@@ -52,13 +51,9 @@ public class ServiceProviderController {
             ObjectMapper objectMapper = new ObjectMapper();
             ServiceProviderRegisterDto requestDto = objectMapper.readValue(requestDtoString, ServiceProviderRegisterDto.class);
 
-            System.out.println("ty" + requestDto);
-
-
             // Call service method
             ResponseEntity<?> registeredProvider = serviceProviderService.registerServiceProvider(requestDto, httpServletResponse, imageFile);
 
-//            return ResponseEntity.ok(registeredProvider);
             return registeredProvider;
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid JSON format"));

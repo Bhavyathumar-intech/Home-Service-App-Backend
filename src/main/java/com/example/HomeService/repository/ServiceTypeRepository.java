@@ -1,4 +1,4 @@
-package com.example.HomeService.repo;
+package com.example.HomeService.repository;
 
 import com.example.HomeService.model.ServiceType;
 import org.springframework.data.jpa.repository.JpaRepository;

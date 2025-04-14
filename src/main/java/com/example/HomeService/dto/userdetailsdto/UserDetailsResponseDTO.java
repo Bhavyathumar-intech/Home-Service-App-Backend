@@ -1,11 +1,10 @@
-package com.example.HomeService.dto.userDetailsDto;
+package com.example.HomeService.dto.userdetailsdto;
 
 import com.example.HomeService.model.UserDetails;
 import lombok.Getter;
 import lombok.Setter;
-import java.time.LocalDate;
+
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.Date;
 
 @Getter

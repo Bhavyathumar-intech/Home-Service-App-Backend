@@ -1,6 +1,6 @@
 package com.example.HomeService.controller;
 
-import com.example.HomeService.dto.OrdersDto.*;
+import com.example.HomeService.dto.ordersdto.*;
 import com.example.HomeService.model.OrderStatus;
 import com.example.HomeService.service.OrdersService;
 import org.springframework.http.ResponseEntity;
@@ -34,12 +34,10 @@ public class OrdersController {
 
     @PreAuthorize("hasRole('PROVIDER')")
     @PatchMapping("/orders/{orderId}/status")
-    public ResponseEntity<UpdateOrderStatusResponse> updateOrderStatus(
+    public ResponseEntity<?> updateOrderStatus(
             @PathVariable Long orderId,
             @RequestParam OrderStatus status) {
-
-        UpdateOrderStatusResponse response = ordersService.updateOrderStatus(orderId, status);
-        return ResponseEntity.ok(response);
+        return ordersService.updateOrderStatus(orderId, status);
     }
 
     @DeleteMapping("/delete/{id}")
@@ -89,12 +87,5 @@ public class OrdersController {
         return ordersService.getOrdersByStatus(status);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
-    @GetMapping("/by-schedule-range")
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByScheduleRange(
-            @RequestParam("start") LocalDateTime start,
-            @RequestParam("end") LocalDateTime end) {
-        return ordersService.getOrdersByScheduleRange(start, end);
-    }
 
 }

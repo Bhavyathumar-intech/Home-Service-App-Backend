@@ -1,11 +1,13 @@
-package com.example.HomeService.dto.OrdersDto;
+package com.example.HomeService.dto.ordersdto;
 
 import com.example.HomeService.model.OrderStatus;
+import jakarta.persistence.Column;
 import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -25,7 +27,8 @@ public class OrderEmailDto {
 
     private String serviceName;
 
-    private LocalDateTime scheduledDateTime;
+    private LocalDate scheduledDate;
+    private LocalTime scheduledTime;
 
     private OrderStatus status;
 
@@ -45,7 +48,8 @@ public class OrderEmailDto {
                 "Service Provider      : " + serviceProviderName + "\n" +
                 "Company Contact No.   : " + serviceProviderCompanyNumber + "\n" +
                 "Service Name          : " + serviceName + "\n" +
-                "Scheduled Date & Time : " + scheduledDateTime + "\n" +
+                "Scheduled Date        : " + scheduledDate + "\n" +
+                "Scheduled Time        : " + scheduledTime + "\n" +
                 "Order Status          : " + status + "\n" +
                 "Order Price           : ₹" + orderPrice + "\n" +
                 "Payment Method        : " + paymentMethod + "\n" +

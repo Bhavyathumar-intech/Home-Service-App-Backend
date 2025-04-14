@@ -1,13 +1,14 @@
 package com.example.HomeService.service;
 
-import com.example.HomeService.dto.serviceProviderDto.ServiceProviderRegisterDto;
-import com.example.HomeService.dto.serviceProviderDto.ServiceProviderResponseDto;
-import com.example.HomeService.dto.serviceProviderDto.ServiceProviderUpdateDto;
+import com.example.HomeService.dto.serviceproviderdto.ServiceProviderRegisterDto;
+import com.example.HomeService.dto.serviceproviderdto.ServiceProviderResponseDto;
+import com.example.HomeService.dto.serviceproviderdto.ServiceProviderUpdateDto;
+import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.Role;
-import com.example.HomeService.repo.ServiceProviderRepository;
-import com.example.HomeService.repo.UserRepository;
+import com.example.HomeService.repository.ServiceProviderRepository;
+import com.example.HomeService.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
@@ -67,16 +68,15 @@ public class ServiceProviderService {
     @Transactional
     public ResponseEntity<?> registerServiceProvider(ServiceProviderRegisterDto requestDto, HttpServletResponse response, MultipartFile imageFile) throws IOException {
         if (serviceProviderRepository.existsByUserId(requestDto.getUserId())) {
-            throw new RuntimeException("User is already registered as a service provider");
+            throw new ResourceNotFoundException("User is already registered as a service provider", requestDto.getUserId());
         }
 
         Users user = usersRepository.findById(requestDto.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with ID: " + requestDto.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: ", requestDto.getUserId()));
 
         if (user.getRole() != Role.PROVIDER) {
-            throw new RuntimeException("User does not have the PROVIDER role");
+            throw new ResourceNotFoundException("User does not have the PROVIDER role");
         }
-
 
         //  Save service provider in DB
         ServiceProvider serviceProvider = new ServiceProvider(
@@ -132,7 +132,7 @@ public class ServiceProviderService {
 
     public ServiceProviderResponseDto getServiceProviderById(Long id) {
         ServiceProvider serviceProvider = serviceProviderRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: " + id));
 
         return new ServiceProviderResponseDto(serviceProvider); //  Using your existing DTO
     }
@@ -147,7 +147,7 @@ public class ServiceProviderService {
 
     public ServiceProviderResponseDto getServiceProviderByUserId(Long userId) {
         ServiceProvider serviceProvider = serviceProviderRepository.findByUserId(userId)
-                .orElseThrow(() -> new RuntimeException("Service Provider not found for user ID: " + userId));
+                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found for user ID: " + userId));
 
         return new ServiceProviderResponseDto(serviceProvider);
     }
@@ -172,7 +172,7 @@ public class ServiceProviderService {
     @Transactional
     public ResponseEntity<ServiceProviderResponseDto> updateServiceProvider(ServiceProviderUpdateDto updatedProvider, MultipartFile imageFile) throws IOException {
         ServiceProvider existingProvider = serviceProviderRepository.findById(updatedProvider.getServiceProviderId())
-                .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + updatedProvider.getServiceProviderId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: " + updatedProvider.getServiceProviderId()));
 
         //  Update fields if they are provided
         if (updatedProvider.getCompanyName() != null) {
@@ -228,11 +228,11 @@ public class ServiceProviderService {
 
         try {
             ServiceProvider serviceProvider = serviceProviderRepository.findById(providerId)
-                    .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + providerId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: ", providerId));
 
             Users user = serviceProvider.getUser();
             if (user.getRole() != Role.PROVIDER) {
-                throw new RuntimeException("User does not have the PROVIDER role and cannot be deleted as a service provider");
+                throw new ResourceNotFoundException("User does not have the PROVIDER role and cannot be deleted as a service provider");
             }
 
             serviceProviderRepository.deleteById(providerId);

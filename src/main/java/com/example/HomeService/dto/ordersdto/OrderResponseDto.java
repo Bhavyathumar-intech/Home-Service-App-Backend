@@ -1,4 +1,4 @@
-package com.example.HomeService.dto.OrdersDto;
+package com.example.HomeService.dto.ordersdto;
 
 import com.example.HomeService.model.OrderStatus;
 import lombok.*;
@@ -6,6 +6,7 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Getter
 @Setter
@@ -21,6 +22,7 @@ public class OrderResponseDto {
 
     private Long serviceProviderId;
     private String serviceProviderName;
+    private String serviceProviderNumber;
 
     private Long userDetailsId;
     private String address;
@@ -28,7 +30,8 @@ public class OrderResponseDto {
     private Long serviceId;
     private String serviceName;
 
-    private LocalDateTime scheduledDateTime;
+    private LocalDate scheduledDate;
+    private LocalTime scheduledTime;
 
     private OrderStatus status;
 

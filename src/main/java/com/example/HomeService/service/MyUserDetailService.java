@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.UserPrinciple;
-import com.example.HomeService.repo.UserRepository;
+import com.example.HomeService.repository.UserRepository;
 
 @Service
 public class MyUserDetailService implements UserDetailsService{
@@ -18,7 +18,6 @@ public class MyUserDetailService implements UserDetailsService{
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-		System.out.println(email);	
 		Users user = repo.findByEmail(email);
 		
 		

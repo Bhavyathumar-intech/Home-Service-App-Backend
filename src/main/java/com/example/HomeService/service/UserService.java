@@ -4,8 +4,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.example.HomeService.dto.userDto.UserRegisterDto;
-import com.example.HomeService.dto.userDto.UserResponseDto;
+import com.example.HomeService.dto.userdto.UserRegisterDto;
+import com.example.HomeService.dto.userdto.UserResponseDto;
+import com.example.HomeService.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,8 +21,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.Role;
-import com.example.HomeService.repo.UserRepository;
-import com.example.HomeService.repo.ServiceProviderRepository;
+import com.example.HomeService.repository.UserRepository;
+import com.example.HomeService.repository.ServiceProviderRepository;
 import com.example.HomeService.model.ServiceProvider;
 
 @Service
@@ -41,7 +42,7 @@ public class UserService {
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
-    public Users register(UserRegisterDto userDto) {
+    public Users register(UserRegisterDto userDto) throws DuplicateKeyException {
         if (repo.existsByEmail(userDto.getEmail())) {
             throw new DuplicateKeyException("Email is Already in Use");
         }
@@ -66,7 +67,11 @@ public class UserService {
 
     public ResponseEntity<?> verify(Users user, HttpServletResponse response) {
 
-        Users dbUser = repo.findByEmail(user.getEmail());
+        Users dbUser = null;
+        try {
+            dbUser = repo.findByEmail(user.getEmail());
+
+        } catch (ResourceNotFoundException e) {}
         System.out.println("in Service" + user.toString());
         System.out.println(dbUser.toString());
 
@@ -121,7 +126,6 @@ public class UserService {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
         }
-
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed");
     }
 
@@ -131,13 +135,12 @@ public class UserService {
     }
 
     @Transactional
-    public ResponseEntity<Map<String, String>> deleteUser(Long userId) {
+    public ResponseEntity<Map<String, String>> deleteUser(Long userId) throws ResourceNotFoundException {
         Map<String, String> response = new HashMap<>();
 
         try {
             Users user = repo.findById(userId)
-                    .orElseThrow(() -> new RuntimeException("Service Provider not found with ID: " + userId));
-
+                    .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: ", userId));
 
             repo.deleteById(userId);
             response.put("success", "Service Provider deleted successfully");

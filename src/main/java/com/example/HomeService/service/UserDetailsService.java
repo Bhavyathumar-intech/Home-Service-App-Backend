@@ -1,10 +1,11 @@
 package com.example.HomeService.service;
 
-import com.example.HomeService.dto.userDetailsDto.UserDetailsResponseDTO;
+import com.example.HomeService.dto.userdetailsdto.UserDetailsResponseDTO;
+import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
-import com.example.HomeService.repo.UserDetailsRepository;
-import com.example.HomeService.repo.UserRepository;
+import com.example.HomeService.repository.UserDetailsRepository;
+import com.example.HomeService.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -49,19 +49,21 @@ public class UserDetailsService {
 
     public ResponseEntity<?> saveUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException {
         System.out.println(userDetails);
-        Optional<Users> userOptional = usersRepository.findById(userId);
-        if (userOptional.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found");
-        }
 
-        userDetails.setUser(userOptional.get());
+        Users user = usersRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: ", userId));
+
+        userDetails.setUser(user);
+
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = storeImage(imageFile);
             userDetails.setProfilePictureUrl(fileName);
         }
+
         UserDetails savedDetails = userDetailsRepository.save(userDetails);
         return ResponseEntity.ok(convertToDto(savedDetails));
     }
+
 
     public ResponseEntity<?> getUserDetailsByUserId(Long userId) {
         UserDetails userDetailsOptional = userDetailsRepository.findByUserId(userId).get();
@@ -78,19 +80,16 @@ public class UserDetailsService {
     }
 
     public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails, MultipartFile imageFile) throws IOException {
-        Optional<UserDetails> existingDetailsOpt = userDetailsRepository.findByUserId(userId);
+        UserDetails existingDetails = userDetailsRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User details not found for user ID: ", userId));
 
-        if (existingDetailsOpt.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User not found!");
-        }
-
-        UserDetails existingDetails = existingDetailsOpt.get();
         existingDetails.setAddress(updatedDetails.getAddress());
         existingDetails.setCity(updatedDetails.getCity());
         existingDetails.setState(updatedDetails.getState());
         existingDetails.setCountry(updatedDetails.getCountry());
         existingDetails.setZipCode(updatedDetails.getZipCode());
         existingDetails.setDateOfBirth(updatedDetails.getDateOfBirth());
+
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = storeImage(imageFile);
             existingDetails.setProfilePictureUrl(fileName);
@@ -102,25 +101,26 @@ public class UserDetailsService {
 
 
 //    public ResponseEntity<?> deleteUserDetails(Long userId) {
-//        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUser_Id(userId);
-//        if (userDetailsOptional.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User details not found for userId: " + userId);
+//        UserDetails userDetailsOptional = userDetailsRepository.findByUserId(userId).get();
+//
+//        if (userDetailsOptional == null) {
+//            Map<String, String> response = new HashMap<>();
+//            response.put("error", "User details not found for userId: " + userId);
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
 //        }
 //
-//        userDetailsRepository.delete(userDetailsOptional.get());
-//        return ResponseEntity.ok("User details deleted successfully for userId: " + userId);
+//        userDetailsRepository.deleteById(userDetailsOptional.getUdId());
+//
+//        Map<String, String> response = new HashMap<>();
+//        response.put("success", "User details deleted successfully for userId: " + userId);
+//        return ResponseEntity.ok(response);
 //    }
 
     public ResponseEntity<?> deleteUserDetails(Long userId) {
-        Optional<UserDetails> userDetailsOptional = userDetailsRepository.findByUserId(userId);
+        UserDetails userDetails = userDetailsRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User details not found for userId: " , userId));
 
-        if (userDetailsOptional.isEmpty()) {
-            Map<String, String> response = new HashMap<>();
-            response.put("error", "User details not found for userId: " + userId);
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-        }
-
-        userDetailsRepository.delete(userDetailsOptional.get());
+        userDetailsRepository.deleteById(userDetails.getUdId());
 
         Map<String, String> response = new HashMap<>();
         response.put("success", "User details deleted successfully for userId: " + userId);

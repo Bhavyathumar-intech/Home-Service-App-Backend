@@ -1,4 +1,4 @@
-package com.example.HomeService.dto.OrdersDto;
+package com.example.HomeService.dto.ordersdto;
 
 import lombok.Getter;
 import lombok.Setter;

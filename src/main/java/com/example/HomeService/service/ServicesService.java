@@ -1,16 +1,17 @@
 package com.example.HomeService.service;
 
-import com.example.HomeService.dto.servicesDto.ServicesResponseDto;
-import com.example.HomeService.dto.servicesDto.ServicesRegisterDto;
-import com.example.HomeService.dto.servicesDto.ServicesUpdateDto;
+import com.example.HomeService.dto.servicesdto.ServicesResponseDto;
+import com.example.HomeService.dto.servicesdto.ServicesRegisterDto;
+import com.example.HomeService.dto.servicesdto.ServicesUpdateDto;
+import com.example.HomeService.exceptions.DuplicateResourceException;
+import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.model.Services;
-import com.example.HomeService.repo.ServiceProviderRepository;
-import com.example.HomeService.repo.ServicesRepository;
+import com.example.HomeService.repository.ServiceProviderRepository;
+import com.example.HomeService.repository.ServicesRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -37,20 +38,25 @@ public class ServicesService {
         this.serviceProviderRepository = serviceProviderRepository;
     }
 
+
+
     public ResponseEntity<?> createService(ServicesRegisterDto dto, MultipartFile imageFile) throws IOException {
-        // Check if a service with the same serviceName and serviceProvider already exists in the database
+        // Check if service with same name and provider exists
         Optional<Services> existingService = serviceRepository.findAll().stream()
                 .filter(serv -> serv.getServiceName().equals(dto.getServiceName()) &&
                         serv.getServiceProvider().getServiceProviderId().equals(dto.getServiceProvider()))
                 .findFirst();
 
-        // If a service exists with the same serviceName and serviceProvider, throw an exception
         if (existingService.isPresent()) {
-            return ResponseEntity.badRequest().body("Service with the same name already exists for this provider.");
+            throw new DuplicateResourceException("Service with the same name already exists for this provider.");
         }
 
+        // Fetch service provider
+        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider())
+                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: " , dto.getServiceProvider()));
+
+        // Create new service
         Services service = new Services();
-        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider()).orElseThrow(() -> new RuntimeException("Service provider not found"));
         service.setServiceProvider(serviceProvider);
         service.setServiceName(dto.getServiceName());
         service.setDescription(dto.getDescription());
@@ -58,16 +64,17 @@ public class ServicesService {
         service.setPrice(dto.getPrice());
         service.setExpectedDuration(dto.getExpectedDuration());
         service.setStatus(dto.isStatus());
+
         if (imageFile != null && !imageFile.isEmpty()) {
             String fileName = storeImage(imageFile);
             service.setImage_url(fileName);
         }
-//        service.setImage_url(dto.getImageUrl());
 
-        // Save service and return response as DTO
+        // Save and return DTO
         Services savedService = serviceRepository.save(service);
         return ResponseEntity.ok(convertToDTO(savedService));
     }
+
 
     public List<ServicesResponseDto> getAllServices() {
         // Convert all services to DTOs before returning

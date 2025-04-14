@@ -1,4 +1,4 @@
-package com.example.HomeService.repo;
+package com.example.HomeService.repository;
 
 import com.example.HomeService.model.Orders;
 import com.example.HomeService.model.Users;
@@ -7,7 +7,6 @@ import com.example.HomeService.model.OrderStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
@@ -26,7 +25,7 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     List<Orders> findByCustomerId(Long userId);
 
     // Find orders scheduled between two date-times
-    List<Orders> findByScheduledDateTimeBetween(LocalDateTime start, LocalDateTime end);
+//    List<Orders> findByScheduledDateTimeBetween(LocalDateTime start, LocalDateTime end);
 
     List<Orders> findByServiceProvider_ServiceProviderId(Long serviceProviderId);
 
