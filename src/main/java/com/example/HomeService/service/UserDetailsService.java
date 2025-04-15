@@ -6,7 +6,8 @@ import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.repository.UserDetailsRepository;
 import com.example.HomeService.repository.UsersRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.HomeService.servicesinterface.UserDetailsServicesInterface;
+import jakarta.transaction.Transactional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -22,15 +23,17 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
-public class UserDetailsService {
+public class UserDetailsService implements UserDetailsServicesInterface {
 
-    @Autowired
-    private UserDetailsRepository userDetailsRepository;
-
-    @Autowired
-    private UsersRepository usersRepository;
+    private final UserDetailsRepository userDetailsRepository;
+    private final UsersRepository usersRepository;
 
     private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\Image\\";
+
+    public UserDetailsService(UserDetailsRepository userDetailsRepository, UsersRepository usersRepository) {
+        this.userDetailsRepository = userDetailsRepository;
+        this.usersRepository = usersRepository;
+    }
 
     private String storeImage(MultipartFile file) throws IOException {
         // Ensure directory exists
@@ -47,6 +50,7 @@ public class UserDetailsService {
         return fileName;
     }
 
+    @Transactional
     public ResponseEntity<?> saveUserDetails(Long userId, UserDetails userDetails, MultipartFile imageFile) throws IOException {
         System.out.println(userDetails);
 
@@ -79,6 +83,7 @@ public class UserDetailsService {
         return ResponseEntity.ok(userDetailsResponseDTO);
     }
 
+    @Transactional
     public ResponseEntity<?> updateUserDetailsByUserId(Long userId, UserDetails updatedDetails, MultipartFile imageFile) throws IOException {
         UserDetails existingDetails = userDetailsRepository.findByUserId(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User details not found for user ID: ", userId));
@@ -100,25 +105,10 @@ public class UserDetailsService {
     }
 
 
-//    public ResponseEntity<?> deleteUserDetails(Long userId) {
-//        UserDetails userDetailsOptional = userDetailsRepository.findByUserId(userId).get();
-//
-//        if (userDetailsOptional == null) {
-//            Map<String, String> response = new HashMap<>();
-//            response.put("error", "User details not found for userId: " + userId);
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-//        }
-//
-//        userDetailsRepository.deleteById(userDetailsOptional.getUdId());
-//
-//        Map<String, String> response = new HashMap<>();
-//        response.put("success", "User details deleted successfully for userId: " + userId);
-//        return ResponseEntity.ok(response);
-//    }
-
+    @Transactional
     public ResponseEntity<?> deleteUserDetails(Long userId) {
         UserDetails userDetails = userDetailsRepository.findByUserId(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User details not found for userId: " , userId));
+                .orElseThrow(() -> new ResourceNotFoundException("User details not found for userId: ", userId));
 
         userDetailsRepository.deleteById(userDetails.getUdId());
 

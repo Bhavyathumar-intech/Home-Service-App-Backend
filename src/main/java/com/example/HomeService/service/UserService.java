@@ -9,7 +9,6 @@ import com.example.HomeService.dto.userdto.UserResponseDto;
 import com.example.HomeService.exceptions.ResourceNotFoundException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -28,20 +27,21 @@ import com.example.HomeService.model.ServiceProvider;
 @Service
 public class UserService {
 
-    @Autowired
-    private JWTservice jwtService;
-
-    @Autowired
-    private AuthenticationManager authManager;
-
-    @Autowired
-    private UsersRepository repo;
-
-    @Autowired
-    private ServiceProviderRepository serviceProviderRepository;
+    private final JWTservice jwtService;
+    private final AuthenticationManager authManager;
+    private final UsersRepository repo;
+    private final ServiceProviderRepository serviceProviderRepository;
 
     private BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(12);
 
+    public UserService(JWTservice jwtService, AuthenticationManager authManager, UsersRepository repo, ServiceProviderRepository serviceProviderRepository) {
+        this.jwtService = jwtService;
+        this.authManager = authManager;
+        this.repo = repo;
+        this.serviceProviderRepository = serviceProviderRepository;
+    }
+
+    @Transactional
     public Users register(UserRegisterDto userDto) throws DuplicateKeyException {
         if (repo.existsByEmail(userDto.getEmail())) {
             throw new DuplicateKeyException("Email is Already in Use");
@@ -65,6 +65,7 @@ public class UserService {
         return user;
     }
 
+    @Transactional
     public ResponseEntity<?> verify(Users user, HttpServletResponse response) {
 
         Users dbUser = null;

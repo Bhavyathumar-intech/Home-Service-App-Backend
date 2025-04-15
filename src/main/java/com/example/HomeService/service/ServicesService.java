@@ -9,7 +9,8 @@ import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.model.Services;
 import com.example.HomeService.repository.ServiceProviderRepository;
 import com.example.HomeService.repository.ServicesRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.HomeService.servicesinterface.ServicesServiceInterface;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,20 +27,18 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class ServicesService {
+public class ServicesService implements ServicesServiceInterface {
 
     private final ServicesRepository serviceRepository;
     private final ServiceProviderRepository serviceProviderRepository;
     private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\ServicesImage";
 
-    @Autowired
     public ServicesService(ServicesRepository serviceRepository, ServiceProviderRepository serviceProviderRepository) {
         this.serviceRepository = serviceRepository;
         this.serviceProviderRepository = serviceProviderRepository;
     }
 
-
-
+    @Transactional
     public ResponseEntity<?> createService(ServicesRegisterDto dto, MultipartFile imageFile) throws IOException {
         // Check if service with same name and provider exists
         Optional<Services> existingService = serviceRepository.findAll().stream()
@@ -53,7 +52,7 @@ public class ServicesService {
 
         // Fetch service provider
         ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider())
-                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: " , dto.getServiceProvider()));
+                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: ", dto.getServiceProvider()));
 
         // Create new service
         Services service = new Services();
@@ -88,8 +87,9 @@ public class ServicesService {
         return service.map(this::convertToDTO);
     }
 
+    @Transactional
     public ResponseEntity<ServicesResponseDto> updateService(Long id, ServicesUpdateDto dto, MultipartFile imageFile) throws IOException {
-        Services services = serviceRepository.findById(id).orElseThrow(() -> new RuntimeException("Service not found"));
+        Services services = serviceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Services not found ", id));
 
 //        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider()).orElseThrow(() -> new RuntimeException("Service provider not found"));
 
@@ -104,21 +104,21 @@ public class ServicesService {
             String fileName = storeImage(imageFile);
             services.setImage_url(fileName);
         }
-//        services.setImage_url(dto.getImageUrl());
 
         Services updatedService = serviceRepository.save(services);
         return ResponseEntity.ok(convertToDTO(updatedService));
     }
 
+    @Transactional
     public void deleteService(Long id) {
         if (!serviceRepository.existsById(id)) {
-            throw new RuntimeException("Service not found with ID: " + id);
+            throw new ResourceNotFoundException("Service not found with ID: " + id);
         }
         serviceRepository.deleteById(id);
     }
 
     public List<ServicesResponseDto> getServicesByServiceProviderId(Long serviceProviderId) {
-        List<Services> services = serviceRepository.findByServiceProvider_ServiceProviderId(serviceProviderId).orElseThrow(() -> new RuntimeException("No services found for provider"));
+        List<Services> services = serviceRepository.findByServiceProvider_ServiceProviderId(serviceProviderId).orElseThrow(() -> new ResourceNotFoundException("No services found for provider"));
         return services.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());

@@ -5,6 +5,7 @@ import com.example.HomeService.exceptions.OrderNotFoundException;
 import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.*;
 import com.example.HomeService.repository.*;
+import com.example.HomeService.servicesinterface.OrdersServiceInterface;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -17,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class OrdersService {
+public class OrdersService implements OrdersServiceInterface {
 
     private final OrdersRepository ordersRepository;
     private final UsersRepository usersRepository;
@@ -141,24 +142,6 @@ public class OrdersService {
 
     public ResponseEntity<List<OrderResponseDto>> getOrdersByUserId(Long userId) {
         List<Orders> orders = ordersRepository.findByCustomerId(userId);
-        List<OrderResponseDto> response = orders.stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByUserObject(Long userId) {
-        Users user = usersRepository.findById(userId).orElseThrow();
-        List<Orders> orders = ordersRepository.findByCustomer(user);
-        List<OrderResponseDto> response = orders.stream()
-                .map(this::convertToResponseDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(response);
-    }
-
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByServiceProviderObject(Long serviceProviderId) {
-        ServiceProvider sp = serviceProviderRepository.findById(serviceProviderId).orElseThrow();
-        List<Orders> orders = ordersRepository.findByServiceProvider(sp);
         List<OrderResponseDto> response = orders.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());

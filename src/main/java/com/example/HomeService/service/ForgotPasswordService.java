@@ -5,6 +5,7 @@ import com.example.HomeService.model.ForgotPassword;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.repository.ForgotPasswordRepository;
 import com.example.HomeService.repository.UsersRepository;
+import com.example.HomeService.servicesinterface.ForgotPasswordServiceInterface;
 import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -17,7 +18,7 @@ import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
-public class ForgotPasswordService {
+public class ForgotPasswordService implements ForgotPasswordServiceInterface {
 
     private static final int OTP_VALIDITY_MINUTES = 5;
 

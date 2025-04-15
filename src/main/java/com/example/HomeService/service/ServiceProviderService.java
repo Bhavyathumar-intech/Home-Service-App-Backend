@@ -9,12 +9,12 @@ import com.example.HomeService.model.Users;
 import com.example.HomeService.model.Role;
 import com.example.HomeService.repository.ServiceProviderRepository;
 import com.example.HomeService.repository.UsersRepository;
+import com.example.HomeService.servicesinterface.ServiceProviderServiceInterface;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
@@ -27,18 +27,18 @@ import java.time.Period;
 import java.util.*;
 
 @Service
-public class ServiceProviderService {
+public class ServiceProviderService implements ServiceProviderServiceInterface {
 
     private final ServiceProviderRepository serviceProviderRepository;
     private final UsersRepository usersRepository;
-    @Autowired
-    private JWTservice jwtService;
+    private final JWTservice jwtService;
 
     private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage";
 
-    public ServiceProviderService(ServiceProviderRepository serviceProviderRepository, UsersRepository usersRepository) {
+    public ServiceProviderService(ServiceProviderRepository serviceProviderRepository, UsersRepository usersRepository, JWTservice jwtService) {
         this.serviceProviderRepository = serviceProviderRepository;
         this.usersRepository = usersRepository;
+        this.jwtService = jwtService;
     }
 
     private String storeImage(MultipartFile file) throws IOException {
