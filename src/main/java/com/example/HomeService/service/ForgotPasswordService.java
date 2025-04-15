@@ -36,33 +36,7 @@ public class ForgotPasswordService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    //    @Transactional
-//    public ResponseEntity<?> sendOtp(String email) {
-//        Users user = usersRepository.findByEmail(email);
-//        if (user == null) {
-//            throw new RuntimeException("Email not found. Please register first.");
-//        }
-//
-//        // Invalidate old OTPs older than 5 mins
-//        forgotPasswordRepository.invalidatePreviousOtps(email, LocalDateTime.now().minusMinutes(OTP_VALIDITY_MINUTES));
-//
-//        long otp = generateSixDigitOtp();
-//
-//        ForgotPassword forgotPassword = new ForgotPassword();
-//        forgotPassword.setEmail(email);
-//        forgotPassword.setOTP(otp);
-//        forgotPassword.setCreatedAt(LocalDateTime.now());
-//        forgotPassword.setValidFlag(true);
-//        forgotPassword.setVerified(false);
-//        forgotPassword.setResetToken(null); // clear any old token
-//
-//        forgotPasswordRepository.save(forgotPassword);
-//
-//        sendOTPEmail(email, otp);
-//        System.out.println("OTP for " + email + ": " + otp);
-//
-//        return ResponseEntity.ok("OTP sent successfully.");
-//    }
+
     @Transactional
     public ResponseEntity<?> sendOtp(String email) {
         Users user = usersRepository.findByEmail(email);
