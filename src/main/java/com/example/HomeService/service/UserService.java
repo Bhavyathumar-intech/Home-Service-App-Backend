@@ -21,7 +21,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.Role;
-import com.example.HomeService.repository.UserRepository;
+import com.example.HomeService.repository.UsersRepository;
 import com.example.HomeService.repository.ServiceProviderRepository;
 import com.example.HomeService.model.ServiceProvider;
 
@@ -35,7 +35,7 @@ public class UserService {
     private AuthenticationManager authManager;
 
     @Autowired
-    private UserRepository repo;
+    private UsersRepository repo;
 
     @Autowired
     private ServiceProviderRepository serviceProviderRepository;

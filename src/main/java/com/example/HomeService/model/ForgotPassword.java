@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Setter
@@ -15,7 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Entity
 public class ForgotPassword {
-
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,11 +26,10 @@ public class ForgotPassword {
     private LocalDateTime createdAt;
 
     @Column(name = "Valid")
-    private boolean flag; // true - false
+    private boolean validFlag;
 
     @Column(name = "verified")
     private boolean verified;
 
-
-
+    private String resetToken;
 }

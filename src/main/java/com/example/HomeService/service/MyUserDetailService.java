@@ -8,13 +8,13 @@ import org.springframework.stereotype.Service;
 
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.UserPrinciple;
-import com.example.HomeService.repository.UserRepository;
+import com.example.HomeService.repository.UsersRepository;
 
 @Service
 public class MyUserDetailService implements UserDetailsService{
     
 	@Autowired
-	UserRepository repo;
+    UsersRepository repo;
 	
 	@Override
 	public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {

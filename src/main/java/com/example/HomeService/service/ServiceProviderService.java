@@ -8,7 +8,7 @@ import com.example.HomeService.model.ServiceProvider;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.model.Role;
 import com.example.HomeService.repository.ServiceProviderRepository;
-import com.example.HomeService.repository.UserRepository;
+import com.example.HomeService.repository.UsersRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseCookie;
@@ -30,13 +30,13 @@ import java.util.*;
 public class ServiceProviderService {
 
     private final ServiceProviderRepository serviceProviderRepository;
-    private final UserRepository usersRepository;
+    private final UsersRepository usersRepository;
     @Autowired
     private JWTservice jwtService;
 
     private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage";
 
-    public ServiceProviderService(ServiceProviderRepository serviceProviderRepository, UserRepository usersRepository) {
+    public ServiceProviderService(ServiceProviderRepository serviceProviderRepository, UsersRepository usersRepository) {
         this.serviceProviderRepository = serviceProviderRepository;
         this.usersRepository = usersRepository;
     }

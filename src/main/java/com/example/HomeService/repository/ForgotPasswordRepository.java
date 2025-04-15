@@ -2,16 +2,30 @@ package com.example.HomeService.repository;
 
 import com.example.HomeService.model.ForgotPassword;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
-@Repository
 public interface ForgotPasswordRepository extends JpaRepository<ForgotPassword, Long> {
 
-    Optional<ForgotPassword> findByEmail(String email);
+    // Used to invalidate all previous OTPs before saving new one
+    @Modifying
+    @Query("UPDATE ForgotPassword fp SET fp.validFlag = false " +
+            "WHERE fp.validFlag = true " +
+            "AND fp.email = :email " +
+            "AND fp.createdAt <= :validSince")
+    void invalidatePreviousOtps(String email, LocalDateTime validSince);
 
-    Optional<ForgotPassword> findByEmailAndOTP(String email, long OTP);
+    @Modifying
+    @Query("UPDATE ForgotPassword fp SET fp.validFlag = false " +
+            "WHERE fp.validFlag = true AND fp.email = :email")
+    void invalidateAllActiveOtps(String email);
 
-    boolean existsByEmail(String email);
+    // Used when user submits OTP
+    ForgotPassword findTopByEmailAndOTPAndValidFlagTrueOrderByCreatedAtDesc(String email, long otp);
+
+    // Used when user submits reset token after verifying OTP
+    Optional<ForgotPassword> findTopByEmailAndResetTokenOrderByCreatedAtDesc(String email, String resetToken);
 }

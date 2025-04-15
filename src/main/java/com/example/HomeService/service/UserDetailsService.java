@@ -5,7 +5,7 @@ import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.repository.UserDetailsRepository;
-import com.example.HomeService.repository.UserRepository;
+import com.example.HomeService.repository.UsersRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,7 @@ public class UserDetailsService {
     private UserDetailsRepository userDetailsRepository;
 
     @Autowired
-    private UserRepository usersRepository;
+    private UsersRepository usersRepository;
 
     private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\Image\\";
 

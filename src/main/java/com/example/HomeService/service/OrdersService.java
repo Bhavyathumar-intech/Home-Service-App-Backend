@@ -20,13 +20,13 @@ import java.util.stream.Collectors;
 public class OrdersService {
 
     private final OrdersRepository ordersRepository;
-    private final UserRepository usersRepository;
+    private final UsersRepository usersRepository;
     private final ServiceProviderRepository serviceProviderRepository;
     private final UserDetailsRepository userDetailsRepository;
     private final ServicesRepository servicesRepository;
     private final JavaMailSender emailSender;
 
-    public OrdersService(OrdersRepository ordersRepository, UserRepository usersRepository, ServiceProviderRepository serviceProviderRepository, UserDetailsRepository userDetailsRepository, ServicesRepository servicesRepository, JavaMailSender emailSender) {
+    public OrdersService(OrdersRepository ordersRepository, UsersRepository usersRepository, ServiceProviderRepository serviceProviderRepository, UserDetailsRepository userDetailsRepository, ServicesRepository servicesRepository, JavaMailSender emailSender) {
         this.ordersRepository = ordersRepository;
         this.usersRepository = usersRepository;
         this.serviceProviderRepository = serviceProviderRepository;
