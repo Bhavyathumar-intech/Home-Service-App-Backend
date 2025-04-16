@@ -42,7 +42,7 @@ public class ForgotPasswordService implements ForgotPasswordServiceInterface {
     public ResponseEntity<?> sendOtp(String email) {
         Users user = usersRepository.findByEmail(email);
         if (user == null) {
-            throw new RuntimeException("Email not found. Please register first.");
+            throw new ResourceNotFoundException("Email not found. Please register first.");
         }
 
         // Invalidate ALL previous active OTPs for this email (even recent ones)
@@ -63,78 +63,101 @@ public class ForgotPasswordService implements ForgotPasswordServiceInterface {
         sendOTPEmail(email, otp);
         System.out.println("OTP for " + email + ": " + otp);
 
-        return ResponseEntity.ok("OTP sent successfully.");
-    }
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", "success");
+        response.put("message", "OTP sent successfully.");
+        response.put("email", email);
 
+        return ResponseEntity.ok(response);
+    }
 
     @Transactional
     public ResponseEntity<?> verifyOtp(String email, long otp) {
+        // Find the most recent valid OTP entry for the email
         ForgotPassword record = forgotPasswordRepository
                 .findTopByEmailAndOTPAndValidFlagTrueOrderByCreatedAtDesc(email, otp);
 
+        // If no valid OTP record is found, throw an error
         if (record == null) {
             throw new ResourceNotFoundException("Invalid OTP or already used.");
         }
 
+        // Check if OTP is expired
         LocalDateTime expiryTime = record.getCreatedAt().plusMinutes(OTP_VALIDITY_MINUTES);
         if (LocalDateTime.now().isAfter(expiryTime)) {
+            // Invalidate the OTP if expired
             record.setValidFlag(false);
             forgotPasswordRepository.save(record);
             throw new ResourceNotFoundException("OTP expired. Please request a new one.");
         }
 
+        // Mark the OTP as verified and invalidate it
         record.setVerified(true);
         record.setValidFlag(false);
 
+        // Generate a reset token and store it
         String resetToken = UUID.randomUUID().toString();
-        record.setResetToken(resetToken); // generate and store reset token
+        record.setResetToken(resetToken);
 
+        // Save changes to the database
         forgotPasswordRepository.save(record);
 
-        // Return resetToken in JSON format
+        // Create JSON response with message and resetToken
         Map<String, String> response = new HashMap<>();
+        response.put("message", "OTP verified successfully.");
         response.put("resetToken", resetToken);
 
         return ResponseEntity.ok(response);
     }
 
-
     @Transactional
     public ResponseEntity<?> resetPassword(String email, String newPassword, String resetToken) {
+        // Find the most recent ForgotPassword record for the email and reset token
         Optional<ForgotPassword> optional = forgotPasswordRepository
                 .findTopByEmailAndResetTokenOrderByCreatedAtDesc(email, resetToken);
 
+        // Validate the reset token
         if (optional.isEmpty()) {
-            throw new RuntimeException("Invalid reset token.");
+            throw new RuntimeException("Invalid or missing reset token.");
         }
 
         ForgotPassword record = optional.get();
 
+        // Ensure the token has been verified via OTP
         if (!record.isVerified()) {
-            throw new RuntimeException("Reset token not verified via OTP.");
+            throw new RuntimeException("Reset token has not been verified. Please verify OTP first.");
         }
 
+        // Check if token is still valid (not expired)
         LocalDateTime expiryTime = record.getCreatedAt().plusMinutes(OTP_VALIDITY_MINUTES);
         if (LocalDateTime.now().isAfter(expiryTime)) {
-            throw new RuntimeException("Reset token expired. Please restart process.");
+            throw new RuntimeException("Reset token has expired. Please restart the process.");
         }
 
+        // Find user by email
         Users user = usersRepository.findByEmail(email);
         if (user == null) {
-            throw new RuntimeException("User not found.");
+            throw new RuntimeException("User associated with this email was not found.");
         }
 
+        // Update user's password
         user.setPassword(passwordEncoder.encode(newPassword));
         usersRepository.save(user);
 
-        // Invalidate token
+        // Invalidate the reset token so it can't be reused
         record.setResetToken(null);
         forgotPasswordRepository.save(record);
 
+        // Optionally send a confirmation email
         sendConfirmationEmail(email);
 
-        return ResponseEntity.ok("Password reset successfully.");
+        // Return a JSON response
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Password has been reset successfully.");
+
+        return ResponseEntity.ok(response);
     }
+
 
     @Async
     private void sendOTPEmail(String email, long OTP) {

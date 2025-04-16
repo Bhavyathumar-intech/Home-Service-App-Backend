@@ -70,17 +70,17 @@ public class OrdersController {
         return ordersService.getOrdersByUserId(userId);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
-    @GetMapping("/by-user-object/{userId}")
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByUserObject(@PathVariable Long userId) {
-        return ordersService.getOrdersByUserObject(userId);
-    }
-
-    @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
-    @GetMapping("/by-provider-object/{providerId}")
-    public ResponseEntity<List<OrderResponseDto>> getOrdersByProviderObject(@PathVariable Long providerId) {
-        return ordersService.getOrdersByServiceProviderObject(providerId);
-    }
+//    @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
+//    @GetMapping("/by-user-object/{userId}")
+//    public ResponseEntity<List<OrderResponseDto>> getOrdersByUserObject(@PathVariable Long userId) {
+//        return ordersService.getOrdersByUserObject(userId);
+//    }
+//
+//    @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
+//    @GetMapping("/by-provider-object/{providerId}")
+//    public ResponseEntity<List<OrderResponseDto>> getOrdersByProviderObject(@PathVariable Long providerId) {
+//        return ordersService.getOrdersByServiceProviderObject(providerId);
+//    }
 
     @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
     @GetMapping("/by-status/{status}")

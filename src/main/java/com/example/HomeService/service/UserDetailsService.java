@@ -28,7 +28,7 @@ public class UserDetailsService implements UserDetailsServicesInterface {
     private final UserDetailsRepository userDetailsRepository;
     private final UsersRepository usersRepository;
 
-    private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\Image\\";
+    private static final String IMAGE_DIRECTORY = "D:\\Project\\Home-Service-App-Backend\\src\\UserDetailsImage\\";
 
     public UserDetailsService(UserDetailsRepository userDetailsRepository, UsersRepository usersRepository) {
         this.userDetailsRepository = userDetailsRepository;
