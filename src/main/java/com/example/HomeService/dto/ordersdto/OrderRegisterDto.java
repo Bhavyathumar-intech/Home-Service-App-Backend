@@ -2,10 +2,9 @@ package com.example.HomeService.dto.ordersdto;
 
 import lombok.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,13 +13,12 @@ import java.time.LocalTime;
 public class OrderRegisterDto {
 
     private Long userId;
-
-    private Long servicesId;
+    private Long serviceProviderId;
 
     private LocalDate scheduledDate;
     private LocalTime scheduledTime;
 
-    private BigDecimal orderPrice;
+    private String paymentMethod; // "COD" or "ONLINE"
 
-    private String paymentMethod;
+    private List<OrderItemDto> items;
 }

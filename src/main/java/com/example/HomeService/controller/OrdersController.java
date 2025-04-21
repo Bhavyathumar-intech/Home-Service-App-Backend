@@ -1,5 +1,6 @@
 package com.example.HomeService.controller;
 
+import com.example.HomeService.dto.ordersdto.OrderPaymentStatusUpdateDto;
 import com.example.HomeService.dto.ordersdto.*;
 import com.example.HomeService.model.OrderStatus;
 import com.example.HomeService.service.OrdersService;
@@ -7,8 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 @CrossOrigin
 @RestController
@@ -27,7 +28,7 @@ public class OrdersController {
         return ordersService.createOrder(dto);
     }
 
-    @PreAuthorize("hasAnyRole('USER', 'PROVIDER')")
+    @PreAuthorize("hasAnyRole('USER')")
     @PatchMapping("/update-order")
     public ResponseEntity<OrderResponseDto> updateOrder(@RequestBody OrderUpdateDto dto) {
         return ordersService.updateOrder(dto);
@@ -88,5 +89,9 @@ public class OrdersController {
         return ordersService.getOrdersByStatus(status);
     }
 
-
+    // Put method to update payment status
+    @PutMapping("/payment-status")
+    public ResponseEntity<Map<String, String>> updatePaymentStatusToPaid(@RequestBody OrderPaymentStatusUpdateDto dto) {
+        return ordersService.updatePaymentStatus(dto);
+    }
 }

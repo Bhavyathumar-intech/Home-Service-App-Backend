@@ -5,8 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,16 +27,17 @@ public class OrderResponseDto {
     private Long userDetailsId;
     private String address;
 
-    private Long serviceId;
-    private String serviceName;
-
     private LocalDate scheduledDate;
     private LocalTime scheduledTime;
 
     private OrderStatus status;
 
-    private BigDecimal orderPrice;
     private String paymentMethod;
+    private String paymentStatus;
+
+    private List<OrderItemDto> items; // Changed here
+
+    private BigDecimal totalAmount; // Optional: calculated from items
 
     private LocalDate orderedAt;
     private LocalDate updatedAt;

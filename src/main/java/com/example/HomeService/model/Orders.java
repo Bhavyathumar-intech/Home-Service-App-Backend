@@ -5,8 +5,9 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -28,21 +29,9 @@ public class Orders {
     @JoinColumn(name = "service_provider_id", nullable = false)
     private ServiceProvider serviceProvider;
 
-    /**
-     * Many-to-One relationship with UserDetails.
-     * Used for fetching the address and location details for the order.
-     */
     @ManyToOne
     @JoinColumn(name = "user_details_id", nullable = false)
     private UserDetails userDetails;
-
-    /**
-     * Many-to-One relationship with Services.
-     * Used for referencing the services related to the order.
-     */
-    @ManyToOne
-    @JoinColumn(name = "service_name", nullable = false)
-    private Services services;
 
     @Temporal(TemporalType.DATE)
     @Column(name = "scheduled_date", nullable = false)
@@ -56,26 +45,25 @@ public class Orders {
     private OrderStatus status;
 
     @Column(nullable = false)
-    private BigDecimal orderPrice;
-
-    @Column(nullable = false)
     private String paymentMethod;
 
-    /**
-     * Timestamp when the order was created.
-     */
+    @Column(name = "payment_status", nullable = false)
+    private String paymentStatus; // "PAID" or "PENDING"
+
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
+    private List<OrderItem> items = new ArrayList<>();
+
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
+    private Payment payment;
+
+    private BigDecimal orderPrice;
+
     @Column(name = "ordered_at", nullable = false, updatable = false)
     private LocalDate orderedAt;
 
-    /**
-     * Timestamp when the order was last updated.
-     */
     @Column(name = "updated_at")
     private LocalDate updatedAt;
 
-    /**
-     * Automatically sets creation and update timestamps.
-     */
     @PrePersist
     protected void onCreate() {
         this.orderedAt = LocalDate.now();
@@ -84,5 +72,11 @@ public class Orders {
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDate.now();
+    }
+
+    public BigDecimal calculateTotal() {
+        return items.stream()
+                .map(item -> item.getPricePerUnit().multiply(BigDecimal.valueOf(item.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 }

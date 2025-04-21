@@ -42,5 +42,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(UnauthorizedActionException.class)
+    public ResponseEntity<String> handleUnauthorizedAction(UnauthorizedActionException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.FORBIDDEN); // 403 Forbidden
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<String> handleIllegalState(IllegalStateException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
 }
 

@@ -19,8 +19,5 @@ public class OrderUpdateDto {
     private LocalDate scheduledDate;
     private LocalTime scheduledTime;
 
-    private OrderStatus status;
-
-    private String paymentMethod;
 }
 
