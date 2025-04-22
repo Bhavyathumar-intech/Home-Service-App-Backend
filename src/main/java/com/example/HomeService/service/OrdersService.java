@@ -8,7 +8,10 @@ import com.example.HomeService.model.*;
 import com.example.HomeService.exceptions.OrderNotFoundException;
 import com.example.HomeService.repository.*;
 import com.example.HomeService.servicesinterface.OrdersServiceInterface;
+import com.stripe.Stripe;
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
@@ -33,6 +36,14 @@ public class OrdersService implements OrdersServiceInterface {
     private final PaymentRepository paymentRepository;
     private final JavaMailSender emailSender;
     private final OrderItemRepository orderItemRepository;
+
+    @Value("${stripe.api.key}")
+    private String stripeApiKey;
+
+    @PostConstruct
+    public void init() {
+        Stripe.apiKey = stripeApiKey;
+    }
 
 
     public OrdersService(

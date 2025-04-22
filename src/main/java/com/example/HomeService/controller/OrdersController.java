@@ -22,7 +22,7 @@ public class OrdersController {
         this.ordersService = ordersService;
     }
 
-    @PreAuthorize("hasRole('USER')")
+//    @PreAuthorize("hasRole('USER')")
     @PostMapping("/create-order")
     public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRegisterDto dto) {
         return ordersService.createOrder(dto);
@@ -90,6 +90,7 @@ public class OrdersController {
     }
 
     // Put method to update payment status
+    @PreAuthorize("hasRole('PROVIDER')")
     @PutMapping("/payment-status")
     public ResponseEntity<Map<String, String>> updatePaymentStatusToPaid(@RequestBody OrderPaymentStatusUpdateDto dto) {
         return ordersService.updatePaymentStatus(dto);
