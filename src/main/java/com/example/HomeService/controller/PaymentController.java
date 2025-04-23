@@ -15,6 +15,8 @@ import com.example.HomeService.model.Payment;
 import com.example.HomeService.model.Orders;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class PaymentController {
@@ -31,42 +33,47 @@ public class PaymentController {
     }
 
     @GetMapping("/payment/success")
-    public String paymentSuccess(@RequestParam("session_id") String sessionId) {
-        try {
-            // Set your API key for Stripe
-            RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
+    public ResponseEntity<Map<String, Object>> paymentSuccess(@RequestParam("session_id") String sessionId) {
+        Map<String, Object> response = new HashMap<>();
 
-            // Retrieve the session from Stripe using the session_id
+        try {
+            RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
             Session session = Session.retrieve(sessionId, requestOptions);
 
-            // Check the payment status of the session
             if ("paid".equals(session.getPaymentStatus())) {
-                // Retrieve the corresponding payment using the session id
                 Payment payment = paymentRepository.findBySessionId(sessionId);
+
                 if (payment != null) {
-                    // Update the payment status to "PAID" in the Payment entity
                     payment.setPaymentStatus("PAID");
-                    payment.setPaidAt(LocalDateTime.now()); // Mark the payment time
+                    payment.setPaidAt(LocalDateTime.now());
+                    payment.setStripePaymentIntentId(session.getPaymentIntent());
                     paymentRepository.save(payment);
 
-                    // Retrieve the related order
                     Orders order = payment.getOrder();
                     order.setPaymentStatus("PAID");
-                    ordersRepository.save(order);  // Save the updated order with the "PAID" status
+                    ordersRepository.save(order);
 
-                    return "Payment Successful, Order has been updated!";
+                    response.put("success", true);
+                    response.put("message", "Payment successful and order updated.");
+                    return ResponseEntity.ok(response);
+                } else {
+                    response.put("success", false);
+                    response.put("message", "Payment session not found.");
+                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
                 }
-                return "Payment session not found!";
             } else {
-                return "Payment Failed!";
+                response.put("success", false);
+                response.put("message", "Payment not completed.");
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
             }
         } catch (StripeException e) {
-            // Handle Stripe exceptions
             e.printStackTrace();
-            return "Payment verification failed due to an error with Stripe!";
+            response.put("success", false);
+            response.put("message", "Stripe error: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
-
     }
+
 
     @GetMapping("/payment/cancel")
     public ResponseEntity<String> handlePaymentFailure() {
