@@ -4,6 +4,7 @@ import com.example.HomeService.dto.ordersdto.OrderPaymentStatusUpdateDto;
 import com.example.HomeService.dto.ordersdto.*;
 import com.example.HomeService.model.OrderStatus;
 import com.example.HomeService.service.OrdersService;
+import com.stripe.exception.StripeException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +23,9 @@ public class OrdersController {
         this.ordersService = ordersService;
     }
 
-//    @PreAuthorize("hasRole('USER')")
+    //    @PreAuthorize("hasRole('USER')")
     @PostMapping("/create-order")
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRegisterDto dto) {
+    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRegisterDto dto) throws StripeException {
         return ordersService.createOrder(dto);
     }
 

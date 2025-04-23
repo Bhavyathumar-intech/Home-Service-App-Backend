@@ -41,4 +41,6 @@ public class OrderResponseDto {
 
     private LocalDate orderedAt;
     private LocalDate updatedAt;
+
+    private String checkoutUrl;
 }
