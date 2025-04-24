@@ -118,7 +118,7 @@ public class OrdersService implements OrdersServiceInterface {
                             .setCurrency("inr")
                             .setUnitAmount(totalPrice.multiply(BigDecimal.valueOf(100)).longValue())
                             .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                    .setName("Service Order #" + savedOrder.getServiceProvider().getCompanyName())
+                                    .setName("Service Order for " + savedOrder.getServiceProvider().getCompanyName() + " Service Provider ")
                                     .build())
                             .build())
                     .build();
@@ -294,7 +294,7 @@ public class OrdersService implements OrdersServiceInterface {
                 ))
                 .toList();
 
-        String paymentStatus = order.getPayment() != null ? order.getPayment().getPaymentStatus() : "N/A";
+        String paymentStatus = order.getPayment() != null ? order.getPayment().getPaymentStatus() : "UNPAID";
         String checkoutUrl = order.getPayment() != null ? order.getPayment().getSessionUrl() : null;
 
         return new OrderResponseDto(
@@ -330,7 +330,7 @@ public class OrdersService implements OrdersServiceInterface {
                 ))
                 .toList();
 
-        String paymentStatus = order.getPayment() != null ? order.getPayment().getPaymentStatus() : "PENDING";
+        String paymentStatus = order.getPayment() != null ? order.getPayment().getPaymentStatus() : "UNPAID";
 
         return new OrderEmailDto(
                 order.getId(),

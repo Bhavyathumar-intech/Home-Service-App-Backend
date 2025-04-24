@@ -14,6 +14,7 @@ import com.example.HomeService.repository.PaymentRepository;
 import com.example.HomeService.model.Payment;
 import com.example.HomeService.model.Orders;
 
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,10 +33,50 @@ public class PaymentController {
         this.paymentRepository = paymentRepository;
     }
 
-    @GetMapping("/payment/success")
-    public ResponseEntity<Map<String, Object>> paymentSuccess(@RequestParam("session_id") String sessionId) {
-        Map<String, Object> response = new HashMap<>();
+//    @GetMapping("/payment/success")
+//    public ResponseEntity<Map<String, Object>> paymentSuccess(@RequestParam("session_id") String sessionId) {
+//        Map<String, Object> response = new HashMap<>();
+//
+//        try {
+//            RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
+//            Session session = Session.retrieve(sessionId, requestOptions);
+//
+//            if ("paid".equals(session.getPaymentStatus())) {
+//                Payment payment = paymentRepository.findBySessionId(sessionId);
+//
+//                if (payment != null) {
+//                    payment.setPaymentStatus("PAID");
+//                    payment.setPaidAt(LocalDateTime.now());
+//                    payment.setStripePaymentIntentId(session.getPaymentIntent());
+//                    paymentRepository.save(payment);
+//
+//                    Orders order = payment.getOrder();
+//                    order.setPaymentStatus("PAID");
+//                    ordersRepository.save(order);
+//
+//                    response.put("success", true);
+//                    response.put("message", "Payment successful and order updated.");
+//                    return ResponseEntity.ok(response);
+//                } else {
+//                    response.put("success", false);
+//                    response.put("message", "Payment session not found.");
+//                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+//                }
+//            } else {
+//                response.put("success", false);
+//                response.put("message", "Payment not completed.");
+//                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+//            }
+//        } catch (StripeException e) {
+//            e.printStackTrace();
+//            response.put("success", false);
+//            response.put("message", "Stripe error: " + e.getMessage());
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+//        }
+//    }
 
+    @GetMapping("/payment/success")
+    public ResponseEntity<Void> paymentSuccess(@RequestParam("session_id") String sessionId) {
         try {
             RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
             Session session = Session.retrieve(sessionId, requestOptions);
@@ -53,24 +94,26 @@ public class PaymentController {
                     order.setPaymentStatus("PAID");
                     ordersRepository.save(order);
 
-                    response.put("success", true);
-                    response.put("message", "Payment successful and order updated.");
-                    return ResponseEntity.ok(response);
+                    //  Redirect to frontend success page
+                    return ResponseEntity.status(HttpStatus.FOUND)
+                            .location(URI.create("http://localhost:5173/success"))
+                            .build();
                 } else {
-                    response.put("success", false);
-                    response.put("message", "Payment session not found.");
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+                    // Still redirect to frontend (could also use a /failure page here)
+                    return ResponseEntity.status(HttpStatus.FOUND)
+                            .location(URI.create("http://localhost:5173/failure"))
+                            .build();
                 }
             } else {
-                response.put("success", false);
-                response.put("message", "Payment not completed.");
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+                return ResponseEntity.status(HttpStatus.FOUND)
+                        .location(URI.create("http://localhost:5173/failure"))
+                        .build();
             }
         } catch (StripeException e) {
             e.printStackTrace();
-            response.put("success", false);
-            response.put("message", "Stripe error: " + e.getMessage());
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .location(URI.create("http://localhost:5173/failure"))
+                    .build();
         }
     }
 
