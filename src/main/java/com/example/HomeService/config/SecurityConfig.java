@@ -36,7 +36,7 @@ public class SecurityConfig {
      * Constructor for injecting dependencies.
      *
      * @param userDetailsService service to load user-specific data
-     * @param jwtFilter custom JWT filter to validate tokens
+     * @param jwtFilter          custom JWT filter to validate tokens
      */
     public SecurityConfig(UserDetailsService userDetailsService, jwtFilter jwtFilter) {
         this.userDetailsService = userDetailsService;
@@ -62,7 +62,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Enable CORS with config
                 .csrf(csrf -> csrf.disable()) // Disable CSRF (suitable for token-based APIs)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/auth/**", "/api/**", "/payment/**").permitAll() // Public endpoints
+                        .requestMatchers("/auth/**", "/payment/**").permitAll() // Public endpoints
                         .anyRequest().authenticated() // All other requests require auth
                 )
                 .authenticationProvider(authenticationProvider()) // Custom authentication provider

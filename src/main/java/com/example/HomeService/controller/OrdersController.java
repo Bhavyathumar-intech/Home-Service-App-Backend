@@ -23,7 +23,7 @@ public class OrdersController {
         this.ordersService = ordersService;
     }
 
-    //    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER')")
     @PostMapping("/create-order")
     public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRegisterDto dto) throws StripeException {
         return ordersService.createOrder(dto);

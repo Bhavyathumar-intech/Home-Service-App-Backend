@@ -59,7 +59,6 @@ public class Orders {
     @Column(name = "success_token")
     private String successToken;
 
-
     private BigDecimal orderPrice;
 
     @Column(name = "ordered_at", nullable = false, updatable = false)
@@ -73,10 +72,6 @@ public class Orders {
         this.orderedAt = LocalDate.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        this.updatedAt = LocalDate.now();
-    }
 
     public BigDecimal calculateTotal() {
         return items.stream()
