@@ -40,38 +40,45 @@ public class ServicesService implements ServicesServiceInterface {
 
     @Transactional
     public ResponseEntity<?> createService(ServicesRegisterDto dto, MultipartFile imageFile) throws IOException {
-        // Check if service with same name and provider exists
-        Optional<Services> existingService = serviceRepository.findAll().stream()
-                .filter(serv -> serv.getServiceName().equals(dto.getServiceName()) &&
-                        serv.getServiceProvider().getServiceProviderId().equals(dto.getServiceProvider()))
-                .findFirst();
+        try {
+            // Check if service with same name and provider exists
+            Optional<Services> existingService = serviceRepository.findAll().stream()
+                    .filter(serv -> serv.getServiceName().equals(dto.getServiceName()) &&
+                            serv.getServiceProvider().getServiceProviderId().equals(dto.getServiceProvider()))
+                    .findFirst();
 
-        if (existingService.isPresent()) {
-            throw new DuplicateResourceException("Service with the same name already exists for this provider.");
+            if (existingService.isPresent()) {
+                throw new DuplicateResourceException("Service with the same name already exists for this provider.");
+            }
+
+            // Fetch service provider
+            ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider())
+                    .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: ", dto.getServiceProvider()));
+
+            // Create new service
+            Services service = new Services();
+            service.setServiceProvider(serviceProvider);
+            service.setServiceName(dto.getServiceName());
+            service.setDescription(dto.getDescription());
+            service.setCategory(dto.getCategory());
+            service.setPrice(dto.getPrice());
+            service.setExpectedDuration(dto.getExpectedDuration());
+            service.setStatus(dto.isStatus());
+
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String fileName = storeImage(imageFile);
+                service.setImage_url(fileName);
+            }
+
+            // Save and return DTO
+            Services savedService = serviceRepository.save(service);
+            return ResponseEntity.ok(convertToDTO(savedService));
+
+        } catch (DuplicateResourceException | ResourceNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to create service: " + ex.getMessage());
         }
-
-        // Fetch service provider
-        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider())
-                .orElseThrow(() -> new ResourceNotFoundException("Service Provider not found with ID: ", dto.getServiceProvider()));
-
-        // Create new service
-        Services service = new Services();
-        service.setServiceProvider(serviceProvider);
-        service.setServiceName(dto.getServiceName());
-        service.setDescription(dto.getDescription());
-        service.setCategory(dto.getCategory());
-        service.setPrice(dto.getPrice());
-        service.setExpectedDuration(dto.getExpectedDuration());
-        service.setStatus(dto.isStatus());
-
-        if (imageFile != null && !imageFile.isEmpty()) {
-            String fileName = storeImage(imageFile);
-            service.setImage_url(fileName);
-        }
-
-        // Save and return DTO
-        Services savedService = serviceRepository.save(service);
-        return ResponseEntity.ok(convertToDTO(savedService));
     }
 
 
@@ -89,25 +96,34 @@ public class ServicesService implements ServicesServiceInterface {
 
     @Transactional
     public ResponseEntity<ServicesResponseDto> updateService(Long id, ServicesUpdateDto dto, MultipartFile imageFile) throws IOException {
-        Services services = serviceRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Services not found ", id));
+        try {
+            Services services = serviceRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Services not found ", id));
 
-//        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProvider()).orElseThrow(() -> new RuntimeException("Service provider not found"));
+            // ServiceProvider check commented out as per original code
+            services.setServiceName(dto.getServiceName());
+            services.setDescription(dto.getDescription());
+            services.setCategory(dto.getCategory());
+            services.setPrice(dto.getPrice());
+            services.setExpectedDuration(dto.getExpectedDuration());
+            services.setStatus(dto.isStatus());
+            services.setUpdatedAt(LocalDate.now());
 
-        services.setServiceName(dto.getServiceName());
-        services.setDescription(dto.getDescription());
-        services.setCategory(dto.getCategory());
-        services.setPrice(dto.getPrice());
-        services.setExpectedDuration(dto.getExpectedDuration());
-        services.setStatus(dto.isStatus());
-        services.setUpdatedAt(LocalDate.now());
-        if (imageFile != null && !imageFile.isEmpty()) {
-            String fileName = storeImage(imageFile);
-            services.setImage_url(fileName);
+            if (imageFile != null && !imageFile.isEmpty()) {
+                String fileName = storeImage(imageFile);
+                services.setImage_url(fileName);
+            }
+
+            Services updatedService = serviceRepository.save(services);
+            return ResponseEntity.ok(convertToDTO(updatedService));
+
+        } catch (ResourceNotFoundException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to update service: " + ex.getMessage());
         }
-
-        Services updatedService = serviceRepository.save(services);
-        return ResponseEntity.ok(convertToDTO(updatedService));
     }
+
 
     @Transactional
     public void deleteService(Long id) {
