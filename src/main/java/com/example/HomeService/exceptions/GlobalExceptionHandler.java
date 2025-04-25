@@ -140,4 +140,11 @@ public class GlobalExceptionHandler {
                         HttpStatus.INTERNAL_SERVER_ERROR,
                         request.getRequestURI()));
     }
+    @ExceptionHandler(PaymentUpdateNotAllowedException.class)
+    public ResponseEntity<ApiErrorResponse> handlePaymentUpdateNotAllowed(PaymentUpdateNotAllowedException exception, HttpServletRequest request) {
+        log.warn("Payment update not allowed: {}", exception.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse(exception.getMessage(), HttpStatus.BAD_REQUEST, request.getRequestURI()));
+    }
+
 }

@@ -93,7 +93,7 @@ public class OrdersController {
     // Put method to update payment status
     @PreAuthorize("hasRole('PROVIDER')")
     @PutMapping("/payment-status")
-    public ResponseEntity<Map<String, String>> updatePaymentStatusToPaid(@RequestBody OrderPaymentStatusUpdateDto dto) {
+    public ResponseEntity<?> updatePaymentStatusToPaid(@RequestBody OrderPaymentStatusUpdateDto dto) {
         return ordersService.updatePaymentStatus(dto);
     }
 }

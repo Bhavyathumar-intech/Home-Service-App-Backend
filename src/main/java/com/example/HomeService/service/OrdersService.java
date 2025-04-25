@@ -1,6 +1,7 @@
 package com.example.HomeService.service;
 
 import com.example.HomeService.dto.ordersdto.*;
+import com.example.HomeService.exceptions.PaymentUpdateNotAllowedException;
 import com.example.HomeService.exceptions.ResourceNotFoundException;
 import com.example.HomeService.exceptions.OrderNotFoundException;
 import com.example.HomeService.model.*;
@@ -65,105 +66,17 @@ public class OrdersService implements OrdersServiceInterface {
         this.orderItemRepository = orderItemRepository;
     }
 
-//    @Transactional
-//    public ResponseEntity<OrderResponseDto> createOrder(OrderRegisterDto dto) throws StripeException {
-//        Orders order = new Orders();
-//
-//        Users user = usersRepository.findById(dto.getUserId())
-//                .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
-//
-//        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProviderId())
-//                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider", dto.getServiceProviderId()));
-//
-//        UserDetails userDetails = userDetailsRepository.findByUserId(dto.getUserId())
-//                .orElseThrow(() -> new ResourceNotFoundException("UserDetails", dto.getUserId()));
-//
-//        order.setCustomer(user);
-//        order.setServiceProvider(serviceProvider);
-//        order.setUserDetails(userDetails);
-//        order.setScheduledDate(dto.getScheduledDate());
-//        order.setScheduledTime(dto.getScheduledTime());
-//        order.setPaymentMethod(dto.getPaymentMethod());
-//        order.setStatus(OrderStatus.PENDING);
-//        order.setPaymentStatus("UNPAID");
-//
-//        List<OrderItem> orderItems = new ArrayList<>();
-//        BigDecimal totalPrice = BigDecimal.ZERO;
-//
-//        for (OrderItemDto itemDto : dto.getItems()) {
-//            Services service = servicesRepository.findById(itemDto.getServiceId())
-//                    .orElseThrow(() -> new ResourceNotFoundException("Service", itemDto.getServiceId()));
-//
-//            OrderItem item = new OrderItem();
-//            item.setOrder(order);
-//            item.setService(service);
-//            item.setQuantity(itemDto.getQuantity());
-//            item.setPricePerUnit(service.getPrice());
-//
-//            orderItems.add(item);
-//            totalPrice = totalPrice.add(service.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
-//        }
-//
-//        order.setItems(orderItems);
-//        order.setOrderPrice(totalPrice);
-//
-//        Orders savedOrder = ordersRepository.save(order);
-//
-//        String checkoutUrl = null;
-//
-//        if ("ONLINE".equalsIgnoreCase(dto.getPaymentMethod())) {
-//            SessionCreateParams.LineItem lineItem = SessionCreateParams.LineItem.builder()
-//                    .setQuantity(1L)
-//                    .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
-//                            .setCurrency("inr")
-//                            .setUnitAmount(totalPrice.multiply(BigDecimal.valueOf(100)).longValue())
-//                            .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-//                                    .setName("Service Order for " + savedOrder.getServiceProvider().getCompanyName() + " Service Provider ")
-//                                    .build())
-//                            .build())
-//                    .build();
-//
-//            SessionCreateParams params = SessionCreateParams.builder()
-//                    .addLineItem(lineItem)
-//                    .setMode(SessionCreateParams.Mode.PAYMENT)
-//                    .setSuccessUrl("http://localhost:8080/payment/success?session_id={CHECKOUT_SESSION_ID}")
-//                    .setCancelUrl("http://localhost:8080/payment/cancel")
-//                    .build();
-//
-//            Session session = Session.create(params);
-//
-//            Payment payment = new Payment();
-//            payment.setOrder(savedOrder);
-//            payment.setAmount(totalPrice);
-//            payment.setPaymentStatus("PENDING");
-//            payment.setSessionId(session.getId());
-//            payment.setSessionUrl(session.getUrl());
-//            paymentRepository.save(payment);
-//
-//            savedOrder.setPayment(payment);
-//            checkoutUrl = session.getUrl();
-//        }
-//
-//        OrderResponseDto response = convertToResponseDto(savedOrder);
-//        response.setCheckoutUrl(checkoutUrl);
-//
-//        OrderEmailDto emailDto = convertToEmailDto(savedOrder);
 
-    /// /        sendSummaryEmail(savedOrder.getCustomer().getEmail(), emailDto);
-    /// /        sendSummaryEmail(savedOrder.getServiceProvider().getUser().getEmail(), emailDto);
-//
-//        return ResponseEntity.ok(response);
-//    }
     @Transactional
     public ResponseEntity<OrderResponseDto> createOrder(OrderRegisterDto dto) throws StripeException {
         Orders order = new Orders();
 
         Users user = usersRepository.findById(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("User Not Found with User Id= ", dto.getUserId()));
         ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProviderId())
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider", dto.getServiceProviderId()));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider Not Found with ProviderId", dto.getServiceProviderId()));
         UserDetails userDetails = userDetailsRepository.findByUserId(dto.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("UserDetails", dto.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("UserDetails not For user  ", user.getName()));
 
         order.setCustomer(user);
         order.setServiceProvider(serviceProvider);
@@ -300,18 +213,41 @@ public class OrdersService implements OrdersServiceInterface {
     }
 
     public ResponseEntity<List<OrderResponseDto>> getOrdersByServiceProviderId(Long serviceProviderId) {
+        // First, verify that the service provider exists
+        serviceProviderRepository.findById(serviceProviderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Service provider not found with ID", serviceProviderId));
+
+        // Then fetch orders
         List<Orders> orders = ordersRepository.findByServiceProvider_ServiceProviderId(serviceProviderId);
+
+        // Check if orders exist for this service provider
+        if (orders == null || orders.isEmpty()) {
+            throw new ResourceNotFoundException("No orders found for service provider ID", serviceProviderId);
+        }
+
+        // Convert to DTOs and return
         List<OrderResponseDto> response = orders.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
+
         return ResponseEntity.ok(response);
     }
 
     public ResponseEntity<List<OrderResponseDto>> getOrdersByUserId(Long userId) {
+        // Check if user exists
+        usersRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID", userId));
+
         List<Orders> orders = ordersRepository.findByCustomerId(userId);
+
+        if (orders.isEmpty()) {
+            throw new ResourceNotFoundException("No orders found for user ID", userId);
+        }
+
         List<OrderResponseDto> response = orders.stream()
                 .map(this::convertToResponseDto)
                 .collect(Collectors.toList());
+
         return ResponseEntity.ok(response);
     }
 
@@ -323,11 +259,11 @@ public class OrdersService implements OrdersServiceInterface {
         return ResponseEntity.ok(response);
     }
 
-    // For Updating Only OrderStauts
+    // For Updating Only OrderStauts For ServiceProvider Use Only
     @Transactional
     public ResponseEntity<OrderResponseDto> updateOrderStatus(Long orderId, OrderStatus newStatus) {
         Orders order = ordersRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found"));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with order id " + orderId));
 
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDate.now());
@@ -343,16 +279,16 @@ public class OrdersService implements OrdersServiceInterface {
     }
 
     @Transactional
-    public ResponseEntity<Map<String, String>> updatePaymentStatus(OrderPaymentStatusUpdateDto dto) {
+    public ResponseEntity<?> updatePaymentStatus(OrderPaymentStatusUpdateDto dto) {
         Map<String, String> response = new HashMap<>();
 
         // Fetch the order using the orderId from DTO
         Orders order = ordersRepository.findById(dto.getOrderId())
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found", dto.getOrderId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with Order Id ", dto.getOrderId()));
 
         // Fetch service provider using the serviceProviderId from DTO
         ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProviderId())
-                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider not found", dto.getServiceProviderId()));
+                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider not found ", dto.getServiceProviderId()));
 
         // Check if the service provider is authorized to update the payment status
         if (!order.getServiceProvider().getServiceProviderId().equals(serviceProvider.getServiceProviderId())) {
@@ -360,13 +296,26 @@ public class OrdersService implements OrdersServiceInterface {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
         }
 
+        // Prevent update if payment method is ONLINE
+        if (Objects.equals(order.getPaymentMethod(), "ONLINE")) {
+            throw new PaymentUpdateNotAllowedException("Payment status cannot be updated for ONLINE payment method.");
+        }
+
+        // Prevent update if COD and status is already PAID
+        if (Objects.equals(order.getPaymentMethod(), "COD") && Objects.equals(order.getPaymentStatus(), "PAID")) {
+            throw new PaymentUpdateNotAllowedException("Payment status is already set to PAID for COD orders. No further changes allowed.");
+        }
+
         // Update the payment status in the order and save
         order.setPaymentStatus(dto.getPaymentStatus()); // Payment status updated based on DTO
         ordersRepository.save(order);
 
-        // Return success response
-        response.put("success", "Payment status updated successfully.");
-        return ResponseEntity.ok(response);
+        OrderEmailDto responseDto = convertToEmailDto(order);
+        sendSummaryEmail(order.getCustomer().getEmail(), responseDto);
+
+        OrderResponseDto orderResponse = convertToResponseDto(order);
+
+        return ResponseEntity.ok(orderResponse);
     }
 
     @Async
