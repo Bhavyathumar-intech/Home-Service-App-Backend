@@ -7,6 +7,7 @@ import java.util.Map;
 import com.example.HomeService.dto.userdto.UserRegisterDto;
 import com.example.HomeService.dto.userdto.UserResponseDto;
 import com.example.HomeService.exceptions.ResourceNotFoundException;
+import com.example.HomeService.exceptions.UnauthorizedActionException;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.springframework.dao.DuplicateKeyException;
@@ -72,16 +73,18 @@ public class UserService {
         try {
             dbUser = repo.findByEmail(user.getEmail());
 
-        } catch (ResourceNotFoundException e) {}
+        } catch (ResourceNotFoundException e) {
+        }
         System.out.println("in Service" + user.toString());
         System.out.println(dbUser.toString());
 
         if (dbUser == null) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not found");
+            throw new ResourceNotFoundException("User not found", HttpStatus.UNAUTHORIZED);
         }
 
+
         if (user.getRole() != dbUser.getRole()) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Invalid role");
+            throw new UnauthorizedActionException("Invalid role " + user.getRole());
         }
 
         try {

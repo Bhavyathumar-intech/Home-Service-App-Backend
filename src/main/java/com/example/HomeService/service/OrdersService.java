@@ -65,16 +65,103 @@ public class OrdersService implements OrdersServiceInterface {
         this.orderItemRepository = orderItemRepository;
     }
 
+//    @Transactional
+//    public ResponseEntity<OrderResponseDto> createOrder(OrderRegisterDto dto) throws StripeException {
+//        Orders order = new Orders();
+//
+//        Users user = usersRepository.findById(dto.getUserId())
+//                .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
+//
+//        ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProviderId())
+//                .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider", dto.getServiceProviderId()));
+//
+//        UserDetails userDetails = userDetailsRepository.findByUserId(dto.getUserId())
+//                .orElseThrow(() -> new ResourceNotFoundException("UserDetails", dto.getUserId()));
+//
+//        order.setCustomer(user);
+//        order.setServiceProvider(serviceProvider);
+//        order.setUserDetails(userDetails);
+//        order.setScheduledDate(dto.getScheduledDate());
+//        order.setScheduledTime(dto.getScheduledTime());
+//        order.setPaymentMethod(dto.getPaymentMethod());
+//        order.setStatus(OrderStatus.PENDING);
+//        order.setPaymentStatus("UNPAID");
+//
+//        List<OrderItem> orderItems = new ArrayList<>();
+//        BigDecimal totalPrice = BigDecimal.ZERO;
+//
+//        for (OrderItemDto itemDto : dto.getItems()) {
+//            Services service = servicesRepository.findById(itemDto.getServiceId())
+//                    .orElseThrow(() -> new ResourceNotFoundException("Service", itemDto.getServiceId()));
+//
+//            OrderItem item = new OrderItem();
+//            item.setOrder(order);
+//            item.setService(service);
+//            item.setQuantity(itemDto.getQuantity());
+//            item.setPricePerUnit(service.getPrice());
+//
+//            orderItems.add(item);
+//            totalPrice = totalPrice.add(service.getPrice().multiply(BigDecimal.valueOf(itemDto.getQuantity())));
+//        }
+//
+//        order.setItems(orderItems);
+//        order.setOrderPrice(totalPrice);
+//
+//        Orders savedOrder = ordersRepository.save(order);
+//
+//        String checkoutUrl = null;
+//
+//        if ("ONLINE".equalsIgnoreCase(dto.getPaymentMethod())) {
+//            SessionCreateParams.LineItem lineItem = SessionCreateParams.LineItem.builder()
+//                    .setQuantity(1L)
+//                    .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
+//                            .setCurrency("inr")
+//                            .setUnitAmount(totalPrice.multiply(BigDecimal.valueOf(100)).longValue())
+//                            .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
+//                                    .setName("Service Order for " + savedOrder.getServiceProvider().getCompanyName() + " Service Provider ")
+//                                    .build())
+//                            .build())
+//                    .build();
+//
+//            SessionCreateParams params = SessionCreateParams.builder()
+//                    .addLineItem(lineItem)
+//                    .setMode(SessionCreateParams.Mode.PAYMENT)
+//                    .setSuccessUrl("http://localhost:8080/payment/success?session_id={CHECKOUT_SESSION_ID}")
+//                    .setCancelUrl("http://localhost:8080/payment/cancel")
+//                    .build();
+//
+//            Session session = Session.create(params);
+//
+//            Payment payment = new Payment();
+//            payment.setOrder(savedOrder);
+//            payment.setAmount(totalPrice);
+//            payment.setPaymentStatus("PENDING");
+//            payment.setSessionId(session.getId());
+//            payment.setSessionUrl(session.getUrl());
+//            paymentRepository.save(payment);
+//
+//            savedOrder.setPayment(payment);
+//            checkoutUrl = session.getUrl();
+//        }
+//
+//        OrderResponseDto response = convertToResponseDto(savedOrder);
+//        response.setCheckoutUrl(checkoutUrl);
+//
+//        OrderEmailDto emailDto = convertToEmailDto(savedOrder);
+
+    /// /        sendSummaryEmail(savedOrder.getCustomer().getEmail(), emailDto);
+    /// /        sendSummaryEmail(savedOrder.getServiceProvider().getUser().getEmail(), emailDto);
+//
+//        return ResponseEntity.ok(response);
+//    }
     @Transactional
     public ResponseEntity<OrderResponseDto> createOrder(OrderRegisterDto dto) throws StripeException {
         Orders order = new Orders();
 
         Users user = usersRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("User", dto.getUserId()));
-
         ServiceProvider serviceProvider = serviceProviderRepository.findById(dto.getServiceProviderId())
                 .orElseThrow(() -> new ResourceNotFoundException("ServiceProvider", dto.getServiceProviderId()));
-
         UserDetails userDetails = userDetailsRepository.findByUserId(dto.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("UserDetails", dto.getUserId()));
 
@@ -107,6 +194,10 @@ public class OrdersService implements OrdersServiceInterface {
         order.setItems(orderItems);
         order.setOrderPrice(totalPrice);
 
+        // Generate success token and attach to order
+        String successToken = UUID.randomUUID().toString();
+        order.setSuccessToken(successToken);
+
         Orders savedOrder = ordersRepository.save(order);
 
         String checkoutUrl = null;
@@ -116,9 +207,10 @@ public class OrdersService implements OrdersServiceInterface {
                     .setQuantity(1L)
                     .setPriceData(SessionCreateParams.LineItem.PriceData.builder()
                             .setCurrency("inr")
+                            //Amount in the smallest Unit in case of INR it is paisa
                             .setUnitAmount(totalPrice.multiply(BigDecimal.valueOf(100)).longValue())
                             .setProductData(SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                                    .setName("Service Order for " + savedOrder.getServiceProvider().getCompanyName() + " Service Provider ")
+                                    .setName("Service Order for " + savedOrder.getServiceProvider().getCompanyName())
                                     .build())
                             .build())
                     .build();
@@ -126,7 +218,7 @@ public class OrdersService implements OrdersServiceInterface {
             SessionCreateParams params = SessionCreateParams.builder()
                     .addLineItem(lineItem)
                     .setMode(SessionCreateParams.Mode.PAYMENT)
-                    .setSuccessUrl("http://localhost:8080/payment/success?session_id={CHECKOUT_SESSION_ID}")
+                    .setSuccessUrl("http://localhost:8080/payment/success?token=" + successToken)
                     .setCancelUrl("http://localhost:8080/payment/cancel")
                     .build();
 
@@ -148,11 +240,12 @@ public class OrdersService implements OrdersServiceInterface {
         response.setCheckoutUrl(checkoutUrl);
 
         OrderEmailDto emailDto = convertToEmailDto(savedOrder);
-//        sendSummaryEmail(savedOrder.getCustomer().getEmail(), emailDto);
-//        sendSummaryEmail(savedOrder.getServiceProvider().getUser().getEmail(), emailDto);
+//    sendSummaryEmail(savedOrder.getCustomer().getEmail(), emailDto);
+//    sendSummaryEmail(savedOrder.getServiceProvider().getUser().getEmail(), emailDto);
 
         return ResponseEntity.ok(response);
     }
+
 
     @Transactional
     public ResponseEntity<OrderResponseDto> updateOrder(OrderUpdateDto dto) {

@@ -56,6 +56,10 @@ public class Orders {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL)
     private Payment payment;
 
+    @Column(name = "success_token")
+    private String successToken;
+
+
     private BigDecimal orderPrice;
 
     @Column(name = "ordered_at", nullable = false, updatable = false)
