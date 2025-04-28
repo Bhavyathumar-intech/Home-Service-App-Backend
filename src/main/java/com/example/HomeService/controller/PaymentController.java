@@ -17,71 +17,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-
-//@RestController
-//public class PaymentController {
-//
-//    @Value("${stripe.api.key}")
-//    private String stripeApiKey;
-//
-//    private final OrdersRepository ordersRepository;
-//    private final PaymentRepository paymentRepository;
-//
-//    public PaymentController(OrdersRepository ordersRepository, PaymentRepository paymentRepository) {
-//        this.ordersRepository = ordersRepository;
-//        this.paymentRepository = paymentRepository;
-//    }
-//
-//    @GetMapping("/payment/success")
-//    public ResponseEntity<Void> paymentSuccess(@RequestParam("session_id") String sessionId) {
-//        try {
-//            RequestOptions requestOptions = RequestOptions.builder().setApiKey(stripeApiKey).build();
-//            Session session = Session.retrieve(sessionId, requestOptions);
-//
-//            if ("paid".equals(session.getPaymentStatus())) {
-//                Payment payment = paymentRepository.findBySessionId(sessionId);
-//
-//                if (payment != null) {
-//                    payment.setPaymentStatus("PAID");
-//                    payment.setPaidAt(LocalDateTime.now());
-//                    payment.setStripePaymentIntentId(session.getPaymentIntent());
-//                    paymentRepository.save(payment);
-//
-//                    Orders order = payment.getOrder();
-//                    order.setPaymentStatus("PAID");
-//                    ordersRepository.save(order);
-//
-//                    //  Redirect to frontend success page
-//                    return ResponseEntity.status(HttpStatus.FOUND)
-//                            .location(URI.create("http://localhost:5173/success"))
-//                            .build();
-//                } else {
-//                    // Still redirect to frontend (could also use a /failure page here)
-//                    return ResponseEntity.status(HttpStatus.FOUND)
-//                            .location(URI.create("http://localhost:5173/failure"))
-//                            .build();
-//                }
-//            } else {
-//                return ResponseEntity.status(HttpStatus.FOUND)
-//                        .location(URI.create("http://localhost:5173/failure"))
-//                        .build();
-//            }
-//        } catch (StripeException e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.FOUND)
-//                    .location(URI.create("http://localhost:5173/failure"))
-//                    .build();
-//        }
-//    }
-//
-//
-//    @GetMapping("/payment/cancel")
-//    public ResponseEntity<String> handlePaymentFailure() {
-//        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed. Please try again.");
-//    }
-//}
 
 @RestController
 public class PaymentController {
@@ -97,6 +32,16 @@ public class PaymentController {
         this.paymentRepository = paymentRepository;
     }
 
+    /**
+     * Handles successful payment redirection from Stripe.
+     * <p>
+     * Verifies the token, retrieves the corresponding order and payment,
+     * checks payment status via Stripe API, updates records if necessary,
+     * and redirects the user to the appropriate success or failure page.
+     *
+     * @param token The unique success token associated with the order.
+     * @return HTTP redirection to the success or failure page.
+     */
     @GetMapping("/payment/success")
     public ResponseEntity<Void> paymentSuccess(@RequestParam("token") String token) {
         Orders order = ordersRepository.findBySuccessToken(token)
@@ -137,6 +82,13 @@ public class PaymentController {
         }
     }
 
+    /**
+     * Handles canceled or failed payments.
+     * <p>
+     * Returns a simple error message indicating that the payment attempt was unsuccessful.
+     *
+     * @return HTTP 400 (Bad Request) with an error message.
+     */
     @GetMapping("/payment/cancel")
     public ResponseEntity<String> handlePaymentFailure() {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Payment failed. Please try again.");

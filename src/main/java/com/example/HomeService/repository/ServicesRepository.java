@@ -18,10 +18,5 @@ public interface ServicesRepository extends JpaRepository<Services, Long> {
     // Find services that are available (status = true)
     Optional<Services> findByStatusTrue();
 
-//    // Delete service based on ServiceProvider ID and Service Name
-//    void deleteByserviceProviderIdAndserviceName(Long serviceProviderId, String serviceName);
-//
-//    // Check if service exists by ServiceProvider ID and Service Name
-//    boolean existsByserviceProviderIdAndserviceName(Long serviceProviderId, String serviceName);
 
 }

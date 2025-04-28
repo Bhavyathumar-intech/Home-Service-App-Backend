@@ -33,7 +33,6 @@ import java.util.Map;
 public class ServiceProviderController {
 
     private final ServiceProviderService serviceProviderService;
-
     private final HttpServletResponse httpServletResponse;
 
     public ServiceProviderController(ServiceProviderService serviceProviderService, HttpServletResponse httpServletResponse) {
@@ -41,20 +40,24 @@ public class ServiceProviderController {
         this.httpServletResponse = httpServletResponse;
     }
 
+    /**
+     * Registers a new service provider with profile image.
+     *
+     * @param requestDtoString JSON string representing ServiceProviderRegisterDto.
+     * @param imageFile        Multipart image file of the service provider.
+     * @return ResponseEntity with registration status.
+     * @throws IOException if image processing or JSON parsing fails.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> registerServiceProvider(
             @RequestPart("ServiceProviderRegisterDto") String requestDtoString,
             @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
         try {
             System.out.println(requestDtoString);
-            // Convert JSON string to DTO
             ObjectMapper objectMapper = new ObjectMapper();
             ServiceProviderRegisterDto requestDto = objectMapper.readValue(requestDtoString, ServiceProviderRegisterDto.class);
 
-            // Call service method
-            ResponseEntity<?> registeredProvider = serviceProviderService.registerServiceProvider(requestDto, httpServletResponse, imageFile);
-
-            return registeredProvider;
+            return serviceProviderService.registerServiceProvider(requestDto, httpServletResponse, imageFile);
         } catch (JsonProcessingException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", "Invalid JSON format"));
         } catch (RuntimeException ex) {
@@ -63,9 +66,9 @@ public class ServiceProviderController {
     }
 
     /**
-     * Retrieves all service providers.
+     * Retrieves a list of all registered service providers.
      *
-     * @return ResponseEntity containing a list of all service providers.
+     * @return List of ServiceProvider objects.
      */
     @GetMapping
     public ResponseEntity<List<ServiceProvider>> getAllServiceProviders() {
@@ -73,10 +76,10 @@ public class ServiceProviderController {
     }
 
     /**
-     * Retrieves a service provider by ID.
+     * Retrieves a service provider by its ID.
      *
-     * @param id The ID of the service provider.
-     * @return ResponseEntity containing the service provider details.
+     * @param id Service provider ID.
+     * @return ServiceProviderResponseDto if found, otherwise an error message.
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> getServiceProviderById(@PathVariable Long id) {
@@ -88,12 +91,11 @@ public class ServiceProviderController {
         }
     }
 
-
     /**
-     * Retrieves a service provider by User ID.
+     * Retrieves a service provider by the associated user ID.
      *
-     * @param userId The User ID linked to the service provider.
-     * @return ResponseEntity containing the service provider details.
+     * @param userId User ID linked to the service provider.
+     * @return ServiceProviderResponseDto if found, otherwise an error message.
      */
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getServiceProviderByUserId(@PathVariable Long userId) {
@@ -105,12 +107,11 @@ public class ServiceProviderController {
         }
     }
 
-
     /**
-     * Retrieves a service provider by Company Name.
+     * Retrieves a service provider by company name.
      *
-     * @param companyName The name of the company.
-     * @return ResponseEntity containing the service provider details.
+     * @param companyName Name of the company.
+     * @return Optional containing the ServiceProvider if found.
      */
     @GetMapping("/company")
     public ResponseEntity<Optional<ServiceProvider>> getServiceProviderByCompanyName(@RequestParam String companyName) {
@@ -118,14 +119,14 @@ public class ServiceProviderController {
     }
 
     /**
-     * Deletes a service provider by serviceProviderId provided in a JSON object.
+     * Deletes a service provider based on the provided ID.
      *
-     * @param requestBody A JSON object containing the serviceProviderId.
-     * @return ResponseEntity with a success or error message.
+     * @param requestBody Map containing the serviceProviderId.
+     * @return ResponseEntity with deletion status.
      */
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteServiceProvider(@RequestBody Map<String, Long> requestBody) {
-        Long providerId = requestBody.get("serviceProviderId"); // Extracting 'serviceProviderId' instead of 'providerId'
+        Long providerId = requestBody.get("serviceProviderId");
 
         if (providerId == null) {
             return ResponseEntity.badRequest().body("serviceProviderId is required");
@@ -136,31 +137,33 @@ public class ServiceProviderController {
     }
 
     /**
-     * Updates an existing service provider.
+     * Updates a service provider's information and optionally updates the profile image.
      *
-     * @param serviceProvider The service provider object with updated details.
-     * @return ResponseEntity with a success message.
+     * @param serviceProvider JSON string representing ServiceProviderUpdateDto.
+     * @param imageFile       Optional image file to update.
+     * @return Updated ServiceProviderResponseDto.
      */
     @PatchMapping("/update")
     public ResponseEntity<ServiceProviderResponseDto> updateServiceProvider(
             @RequestPart("ServiceProviderUpdateDto") String serviceProvider,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
-
         try {
-            // Convert JSON string to DTO
             ObjectMapper objectMapper = new ObjectMapper();
             ServiceProviderUpdateDto requestDto = objectMapper.readValue(serviceProvider, ServiceProviderUpdateDto.class);
 
-            // Call service method
-            ResponseEntity<ServiceProviderResponseDto> registeredProvider = serviceProviderService.updateServiceProvider(requestDto, imageFile);
-
-            return registeredProvider;
+            return serviceProviderService.updateServiceProvider(requestDto, imageFile);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    // Send that uuid of image on this route to get Image
+    /**
+     * Retrieves an image file by filename.
+     *
+     * @param filename Name of the image file.
+     * @return Resource containing the image data with correct media type.
+     * @throws MalformedURLException if the file path is invalid.
+     */
     @GetMapping("/image/{filename}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
         Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServiceProviderImage\\" + filename);
@@ -170,10 +173,8 @@ public class ServiceProviderController {
             return ResponseEntity.notFound().build();
         }
 
-        // Get file extension
         String fileExtension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
 
-        // Determine media type based on extension
         MediaType mediaType;
         switch (fileExtension) {
             case "png":
@@ -193,7 +194,7 @@ public class ServiceProviderController {
                 mediaType = MediaType.IMAGE_JPEG;
                 break;
             default:
-                mediaType = MediaType.APPLICATION_OCTET_STREAM; // Fallback for unknown types
+                mediaType = MediaType.APPLICATION_OCTET_STREAM;
         }
 
         return ResponseEntity.ok()

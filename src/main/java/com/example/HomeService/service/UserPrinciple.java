@@ -1,8 +1,9 @@
-package com.example.HomeService.model;
+package com.example.HomeService.service;
 
 import java.util.Collection;
 import java.util.Collections;
 
+import com.example.HomeService.model.Users;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -15,7 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 public class UserPrinciple implements UserDetails {
 
     @Autowired
-    private Users user;
+    private final Users user;
 
     /**
      * Constructor to initialize UserPrinciple with a Users object.

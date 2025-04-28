@@ -153,8 +153,8 @@ public class OrdersService implements OrdersServiceInterface {
         response.setCheckoutUrl(checkoutUrl);
 
         OrderEmailDto emailDto = convertToEmailDto(savedOrder);
-//    sendSummaryEmail(savedOrder.getCustomer().getEmail(), emailDto);
-//    sendSummaryEmail(savedOrder.getServiceProvider().getUser().getEmail(), emailDto);
+    //    sendSummaryEmail(savedOrder.getCustomer().getEmail(), emailDto);
+    //    sendSummaryEmail(savedOrder.getServiceProvider().getUser().getEmail(), emailDto);
 
         return ResponseEntity.ok(response);
     }
@@ -336,7 +336,7 @@ public class OrdersService implements OrdersServiceInterface {
                 ))
                 .toList();
 
-        String paymentStatus = order.getPayment() != null ? order.getPayment().getPaymentStatus() : "UNPAID";
+        String paymentStatus = order.getPaymentStatus() != null ? order.getPaymentStatus() : "UNPAID";
         String checkoutUrl = order.getPayment() != null ? order.getPayment().getSessionUrl() : null;
 
         return new OrderResponseDto(

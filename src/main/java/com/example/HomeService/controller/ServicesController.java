@@ -37,13 +37,19 @@ public class ServicesController {
         this.objectMapper = objectMapper;
     }
 
-
+    /**
+     * Registers a new service along with an image file.
+     *
+     * @param servicesRegisterDtoString JSON string containing service registration details.
+     * @param imageFile                 The image file associated with the service.
+     * @return ResponseEntity with the created service or error.
+     * @throws IOException if there is an error parsing the JSON or handling the image.
+     */
     @PostMapping("/register")
     public ResponseEntity<?> createService(
             @RequestPart("ServicesRegisterDto") String servicesRegisterDtoString,
             @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
 
-        // Convert JSON string to ServiceRegisterDto object
         ServicesRegisterDto servicesRegisterDto = objectMapper.readValue(servicesRegisterDtoString, ServicesRegisterDto.class);
 
         System.out.println(servicesRegisterDto.toString());
@@ -52,6 +58,11 @@ public class ServicesController {
         return createdService;
     }
 
+    /**
+     * Fetches all services available for users.
+     *
+     * @return List of ServicesResponseDto containing service details.
+     */
     @PreAuthorize("hasAnyRole('USER')")
     @GetMapping("/get-all")
     public ResponseEntity<?> getAllServices() {
@@ -59,6 +70,13 @@ public class ServicesController {
         return ResponseEntity.ok().body(servicesResponseDtos);
     }
 
+    /**
+     * Updates an existing service's details and optionally its image.
+     *
+     * @param updatedService JSON string containing updated service details.
+     * @param imageFile      Optional image file to update.
+     * @return Updated service details or error if not found.
+     */
     @PatchMapping("/update")
     public ResponseEntity<?> updateService(
             @RequestPart("ServicesUpdateDto") String updatedService,
@@ -66,56 +84,71 @@ public class ServicesController {
         try {
             ServicesUpdateDto servicesUpdateDto = objectMapper.readValue(updatedService, ServicesUpdateDto.class);
             Long id = servicesUpdateDto.getServiceId();
-            ResponseEntity<ServicesResponseDto> service = servicesService.updateService(id, servicesUpdateDto, imageFile);
-            return service;
+            return servicesService.updateService(id, servicesUpdateDto, imageFile);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         } catch (JsonMappingException e) {
             throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
         }
     }
 
-    // Get Based on ServiceProviders
+    /**
+     * Fetches services offered by a specific service provider.
+     *
+     * @param providerId ID of the service provider whose services are being requested.
+     * @return List of services provided by the specified provider.
+     */
     @GetMapping("/provider/{providerId}")
     public ResponseEntity<?> getServicesByProvider(@PathVariable Long providerId) {
         return ResponseEntity.ok(servicesService.getServicesByServiceProviderId(providerId));
     }
 
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<?> deleteService(@PathVariable Long id) {
-//        try {
-//            servicesService.deleteService(id);  // Try to delete the service
-//            return ResponseEntity.ok("Service with ID " + id + " deleted successfully.");  // Return 200 with a success message
-//        } catch (RuntimeException e) {
-//            // Catch the exception thrown when service is not found and return 404
-//            if (e.getMessage().contains("Service not found")) {
-//                return ResponseEntity.notFound().build();  // Return 404 if service is not found
-//            }
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");  // Return 500 if any unexpected error occurs
-//        }
-//    }
+    //    @DeleteMapping("/{id}")
+    //    public ResponseEntity<?> deleteService(@PathVariable Long id) {
+    //        try {
+    //            servicesService.deleteService(id);  // Try to delete the service
+    //            return ResponseEntity.ok("Service with ID " + id + " deleted successfully.");  // Return 200 with a success message
+    //        } catch (RuntimeException e) {
+    //            // Catch the exception thrown when service is not found and return 404
+    //            if (e.getMessage().contains("Service not found")) {
+    //                return ResponseEntity.notFound().build();  // Return 404 if service is not found
+    //            }
+    //            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An unexpected error occurred.");  // Return 500 if any unexpected error occurs
+    //        }
+    //    }
 
+    /**
+     * Deletes a service by its ID.
+     *
+     * @param id ID of the service to be deleted.
+     * @return A success or error message.
+     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Map<String, String>> deleteService(@PathVariable Long id) {
         Map<String, String> response = new HashMap<>();
         try {
-            servicesService.deleteService(id);  // Try to delete the service
+            servicesService.deleteService(id);
             response.put("success", "Service with ID " + id + " deleted successfully.");
-            return ResponseEntity.ok(response);  // Return 200 with a success message
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             if (e.getMessage().contains("Service not found")) {
                 response.put("fail", "Service with ID " + id + " not found.");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);  // Return 404 with fail message
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
             }
             response.put("fail", "An unexpected error occurred.");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);  // Return 500 with fail message
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
-
-    // Send that uuid of image on this route to get Image
+    /**
+     * Serves an image associated with a service by filename.
+     *
+     * @param filename The filename of the image to be served.
+     * @return The image file or a 404 response if not found.
+     * @throws MalformedURLException if the path to the image is incorrect.
+     */
     @GetMapping("/image/{filename}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
         Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\ServicesImage\\" + filename);
@@ -125,10 +158,8 @@ public class ServicesController {
             return ResponseEntity.notFound().build();
         }
 
-        // Get file extension
         String fileExtension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
 
-        // Determine media type based on extension
         MediaType mediaType;
         switch (fileExtension) {
             case "png":
@@ -148,7 +179,7 @@ public class ServicesController {
                 mediaType = MediaType.IMAGE_JPEG;
                 break;
             default:
-                mediaType = MediaType.APPLICATION_OCTET_STREAM; // Fallback for unknown types
+                mediaType = MediaType.APPLICATION_OCTET_STREAM;
         }
 
         return ResponseEntity.ok()

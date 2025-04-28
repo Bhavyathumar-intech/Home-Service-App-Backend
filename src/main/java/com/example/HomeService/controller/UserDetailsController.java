@@ -28,7 +28,14 @@ public class UserDetailsController {
     @Autowired
     private UserDetailsService userDetailsService;
 
-
+    /**
+     * Registers user details along with the user's image.
+     *
+     * @param userDetailsRegisterDtoString The JSON string containing user details data.
+     * @param imageFile The image file of the user.
+     * @return A ResponseEntity containing the status of the operation.
+     * @throws IOException If there is an error during the parsing of the JSON or file operations.
+     */
     @PostMapping("/add-details")
     public ResponseEntity<?> registerUserDetails(
             @RequestPart("UserDetailsRegisterDto") String userDetailsRegisterDtoString,
@@ -44,6 +51,14 @@ public class UserDetailsController {
         return userDetailsService.saveUserDetails(userDetailsRegisterDto.getUserId(), userDetails, imageFile);
     }
 
+    /**
+     * Updates existing user details along with an optional image.
+     *
+     * @param userDetailsUpdate The updated user details in JSON format.
+     * @param imageFile An optional image file to update the user's image.
+     * @return A ResponseEntity indicating the result of the update operation.
+     * @throws IOException If there is an error during JSON parsing or file operations.
+     */
     @PatchMapping("/update")
     public ResponseEntity<?> updateUserDetails(
             @RequestPart("UserDetailsRegisterDto") String userDetailsUpdate,
@@ -61,12 +76,24 @@ public class UserDetailsController {
         return userDetailsService.updateUserDetailsByUserId(userDetails.getUser().getId(), userDetails, imageFile);
     }
 
+    /**
+     * Retrieves the details of a user by their user ID.
+     *
+     * @param userId The user ID whose details need to be fetched.
+     * @return A ResponseEntity with the user details if found.
+     */
     @GetMapping("/get-details-by-id/{userId}")
     @ResponseBody
     public ResponseEntity<?> getUserDetails(@PathVariable Long userId) {
         return userDetailsService.getUserDetailsByUserId(userId);
     }
 
+    /**
+     * Deletes the user details for a specific user ID.
+     *
+     * @param userDetailsRegisterDto The DTO containing the userId to delete.
+     * @return A ResponseEntity indicating the result of the deletion operation.
+     */
     @DeleteMapping("/delete")
     public ResponseEntity<?> deleteUserDetails(@RequestBody UserDetailsRegisterDto userDetailsRegisterDto) {
         if (userDetailsRegisterDto.getUserId() == null) {
@@ -76,6 +103,12 @@ public class UserDetailsController {
         return userDetailsService.deleteUserDetails(userDetailsRegisterDto.getUserId());
     }
 
+    /**
+     * Converts a UserDetailsRegisterDto to a UserDetails entity.
+     *
+     * @param dto The DTO containing user details.
+     * @return A UserDetails entity.
+     */
     private UserDetails convertToEntity(UserDetailsRegisterDto dto) {
         UserDetails userDetails = new UserDetails();
         Users user = new Users();
@@ -90,7 +123,13 @@ public class UserDetailsController {
         return userDetails;
     }
 
-    // Send that uuid of image on this route to get Image
+    /**
+     * Retrieves an image based on its filename.
+     *
+     * @param filename The name of the image file.
+     * @return A ResponseEntity containing the image or a not-found response if the image does not exist.
+     * @throws MalformedURLException If the URL of the image path is malformed.
+     */
     @GetMapping("/image/{filename}")
     public ResponseEntity<Resource> getImage(@PathVariable String filename) throws MalformedURLException {
         Path imagePath = Paths.get("D:\\Project\\Home-Service-App-Backend\\src\\UserDetailsImage\\" + filename);

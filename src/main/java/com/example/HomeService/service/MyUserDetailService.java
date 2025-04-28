@@ -7,7 +7,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import com.example.HomeService.model.Users;
-import com.example.HomeService.model.UserPrinciple;
 import com.example.HomeService.repository.UsersRepository;
 
 @Service

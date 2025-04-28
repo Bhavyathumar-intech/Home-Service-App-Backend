@@ -25,9 +25,6 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     // Find orders by user ID (useful for performance if only ID is available)
     List<Orders> findByCustomerId(Long userId);
 
-    // Find orders scheduled between two date-times
-//    List<Orders> findByScheduledDateTimeBetween(LocalDateTime start, LocalDateTime end);
-
     List<Orders> findByServiceProvider_ServiceProviderId(Long serviceProviderId);
 
     Optional<Orders> findBySuccessToken(String token);
