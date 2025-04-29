@@ -43,7 +43,12 @@ public class PaymentController {
      * @return HTTP redirection to the success or failure page.
      */
     @GetMapping("/payment/success")
-    public ResponseEntity<Void> paymentSuccess(@RequestParam("token") String token) {
+    public ResponseEntity<?> paymentSuccess(@RequestParam("token") String token) {
+
+        if (token == null) {
+            return ResponseEntity.badRequest().body("Request body cannot be null");
+        }
+
         Orders order = ordersRepository.findBySuccessToken(token)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN, "Invalid or expired token"));
 

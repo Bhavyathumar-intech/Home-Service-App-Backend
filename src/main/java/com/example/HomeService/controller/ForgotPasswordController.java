@@ -28,6 +28,9 @@ public class ForgotPasswordController {
     private ResponseEntity<?> generateOTP(@RequestBody Map<String, String> request) {
         String email = request.get("email");
         System.out.println(email);
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email is required");
+        }
         return forgotPasswordService.sendOtp(email);
     }
 
@@ -40,9 +43,29 @@ public class ForgotPasswordController {
     @PostMapping("/verify-otp")
     public ResponseEntity<?> verifyOTP(@RequestBody Map<String, String> request) {
         String email = request.get("email");
-        Long OTP = Long.valueOf(request.get("otp"));
+        String otpString = request.get("otp");
+
+        // Check for missing or blank email
+        if (email == null || email.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Email is required");
+        }
+
+        // Check for missing or blank OTP
+        if (otpString == null || otpString.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("OTP is required");
+        }
+
+        // Validate OTP is a valid number
+        Long OTP;
+        try {
+            OTP = Long.valueOf(otpString);
+        } catch (NumberFormatException ex) {
+            return ResponseEntity.badRequest().body("OTP must be a valid number");
+        }
+
         return forgotPasswordService.verifyOtp(email, OTP);
     }
+
 
     /**
      * Resets the user's password after successful OTP verification.

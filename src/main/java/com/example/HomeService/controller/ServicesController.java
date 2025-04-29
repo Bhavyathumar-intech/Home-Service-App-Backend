@@ -50,6 +50,10 @@ public class ServicesController {
             @RequestPart("ServicesRegisterDto") String servicesRegisterDtoString,
             @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
 
+        if (servicesRegisterDtoString == null) {
+            return ResponseEntity.badRequest().body("Request body cannot be null");
+        }
+
         ServicesRegisterDto servicesRegisterDto = objectMapper.readValue(servicesRegisterDtoString, ServicesRegisterDto.class);
 
         System.out.println(servicesRegisterDto.toString());
@@ -81,6 +85,11 @@ public class ServicesController {
     public ResponseEntity<?> updateService(
             @RequestPart("ServicesUpdateDto") String updatedService,
             @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
+
+        if (updatedService == null) {
+            return ResponseEntity.badRequest().body("Request body cannot be null");
+        }
+
         try {
             ServicesUpdateDto servicesUpdateDto = objectMapper.readValue(updatedService, ServicesUpdateDto.class);
             Long id = servicesUpdateDto.getServiceId();

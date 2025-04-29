@@ -31,9 +31,25 @@ public class OrdersController {
      */
     @PreAuthorize("hasRole('USER')")
     @PostMapping("/create-order")
-    public ResponseEntity<OrderResponseDto> createOrder(@RequestBody OrderRegisterDto dto) throws StripeException {
+    public ResponseEntity<?> createOrder(@RequestBody OrderRegisterDto dto) throws StripeException {
+        // Null check for DTO itself
+        if (dto == null) {
+            return ResponseEntity.badRequest().body("Request body cannot be null");
+        }
+
+        // Null check for individual fields (additional to @Valid)
+        if (dto.getUserId() == null) {
+            return ResponseEntity.badRequest().body("NO USER Id available ");
+        }
+
+        if (dto.getServiceProviderId() == null) {
+            return ResponseEntity.badRequest().body("NO ServiceProviderId available");
+        }
+
+        // If all checks pass, delegate to service layer
         return ordersService.createOrder(dto);
     }
+
 
     /**
      * Updates an existing order for the authenticated user.
@@ -43,7 +59,10 @@ public class OrdersController {
      */
     @PreAuthorize("hasAnyRole('USER')")
     @PatchMapping("/update-order")
-    public ResponseEntity<OrderResponseDto> updateOrder(@RequestBody OrderUpdateDto dto) {
+    public ResponseEntity<?> updateOrder(@RequestBody OrderUpdateDto dto) {
+        if (dto == null) {
+            return ResponseEntity.badRequest().body("Request body cannot be null");
+        }
         return ordersService.updateOrder(dto);
     }
 
@@ -51,7 +70,7 @@ public class OrdersController {
      * Updates the status of an order by service provider.
      *
      * @param orderId ID of the order to update
-     * @param status New order status
+     * @param status  New order status
      * @return Response entity with update result
      */
     @PreAuthorize("hasRole('PROVIDER')")
@@ -165,6 +184,9 @@ public class OrdersController {
     @PreAuthorize("hasRole('PROVIDER')")
     @PutMapping("/payment-status")
     public ResponseEntity<?> updatePaymentStatusToPaid(@RequestBody OrderPaymentStatusUpdateDto dto) {
+        if (dto == null) {
+            return ResponseEntity.badRequest().body("Request body cannot be null");
+        }
         return ordersService.updatePaymentStatus(dto);
     }
 }
