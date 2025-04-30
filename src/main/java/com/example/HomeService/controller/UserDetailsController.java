@@ -4,10 +4,14 @@ import com.example.HomeService.dto.userdetailsdto.UserDetailsRegisterDto;
 import com.example.HomeService.model.UserDetails;
 import com.example.HomeService.model.Users;
 import com.example.HomeService.service.UserDetailsService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.core.io.Resource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.UrlResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -62,19 +66,36 @@ public class UserDetailsController {
     @PatchMapping("/update")
     public ResponseEntity<?> updateUserDetails(
             @RequestPart("UserDetailsRegisterDto") String userDetailsUpdate,
-            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) throws IOException {
-        // Convert JSON String to UserDetailsRegisterDto Object
-        ObjectMapper objectMapper = new ObjectMapper();
-        UserDetailsRegisterDto userDetailsUpdateDto = objectMapper.readValue(userDetailsUpdate, UserDetailsRegisterDto.class);
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
-        UserDetails userDetails = convertToEntity(userDetailsUpdateDto);
-
-        if (userDetails.getUser().getId() == null) {
-            return ResponseEntity.badRequest().body("Missing 'userId' in request body");
+        if (userDetailsUpdate == null || userDetailsUpdate.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("User details data cannot be null or empty.");
         }
 
-        return userDetailsService.updateUserDetailsByUserId(userDetails.getUser().getId(), userDetails, imageFile);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            UserDetailsRegisterDto userDetailsUpdateDto = objectMapper.readValue(userDetailsUpdate, UserDetailsRegisterDto.class);
+            UserDetails userDetails = convertToEntity(userDetailsUpdateDto);
+
+            if (userDetails.getUser() == null || userDetails.getUser().getId() == null) {
+                return ResponseEntity.badRequest().body("Missing 'userId' in request body.");
+            }
+
+            return userDetailsService.updateUserDetailsByUserId(userDetails.getUser().getId(), userDetails, imageFile);
+
+        } catch (JsonMappingException e) {
+            return ResponseEntity.badRequest().body("Invalid JSON format or structure in user details.");
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().body("Error processing JSON.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("I/O error occurred while processing the request.");
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build(); // Optional: add a custom message
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred: " + e.getMessage());
+        }
     }
+
 
     /**
      * Retrieves the details of a user by their user ID.

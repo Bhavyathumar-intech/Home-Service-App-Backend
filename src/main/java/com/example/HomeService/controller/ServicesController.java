@@ -4,8 +4,10 @@ import com.example.HomeService.dto.servicesdto.ServicesRegisterDto;
 import com.example.HomeService.dto.servicesdto.ServicesResponseDto;
 import com.example.HomeService.dto.servicesdto.ServicesUpdateDto;
 import com.example.HomeService.service.ServicesService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.HttpStatus;
@@ -48,19 +50,28 @@ public class ServicesController {
     @PostMapping("/register")
     public ResponseEntity<?> createService(
             @RequestPart("ServicesRegisterDto") String servicesRegisterDtoString,
-            @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
+            @RequestPart(value = "imageFile", required = false) MultipartFile imageFile) {
 
-        if (servicesRegisterDtoString == null) {
-            return ResponseEntity.badRequest().body("Request body cannot be null");
+        if (servicesRegisterDtoString == null || servicesRegisterDtoString.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Service registration data cannot be null or empty.");
         }
 
-        ServicesRegisterDto servicesRegisterDto = objectMapper.readValue(servicesRegisterDtoString, ServicesRegisterDto.class);
+        try {
+            ServicesRegisterDto servicesRegisterDto = objectMapper.readValue(servicesRegisterDtoString, ServicesRegisterDto.class);
+            return servicesService.createService(servicesRegisterDto, imageFile);
 
-        System.out.println(servicesRegisterDto.toString());
-
-        ResponseEntity<?> createdService = servicesService.createService(servicesRegisterDto, imageFile);
-        return createdService;
+        } catch (JsonMappingException e) {
+            return ResponseEntity.badRequest().body("Invalid JSON format or structure in service registration data.");
+        } catch (JsonProcessingException e) {
+            return ResponseEntity.badRequest().body("Error processing JSON.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("I/O error occurred while processing the request.");
+        } catch (Exception e) {
+            // Catch-all for unexpected exceptions
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Unexpected error occurred: " + e.getMessage());
+        }
     }
+
 
     /**
      * Fetches all services available for users.
@@ -94,12 +105,18 @@ public class ServicesController {
             ServicesUpdateDto servicesUpdateDto = objectMapper.readValue(updatedService, ServicesUpdateDto.class);
             Long id = servicesUpdateDto.getServiceId();
             return servicesService.updateService(id, servicesUpdateDto, imageFile);
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
         } catch (JsonMappingException e) {
-            throw new RuntimeException(e);
-        } catch (IOException ex) {
-            throw new RuntimeException(ex);
+            // JSON is badly formatted or doesn't match the DTO
+            return ResponseEntity.badRequest().body("Invalid JSON format or structure.");
+        } catch (JsonProcessingException e) {
+            // General JSON processing error
+            return ResponseEntity.badRequest().body("Error processing JSON.");
+        } catch (EntityNotFoundException e) {
+            // Custom or JPA exception indicating the service with the given ID doesn't exist
+            return ResponseEntity.notFound().build();
+        } catch (IOException e) {
+            // I/O error (maybe reading from the input stream failed)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("I/O error occurred.");
         }
     }
 
