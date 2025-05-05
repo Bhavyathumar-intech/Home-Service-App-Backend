@@ -25,7 +25,7 @@ public class MyUserDetailService implements UserDetailsService{
 			System.out.println("User not found with email: " +email);
 			throw new UsernameNotFoundException("User not found with email: " + email);
 		}
-		System.out.println("sucess");
+		System.out.println("success");
 		return new UserPrinciple(user);
 	}
 

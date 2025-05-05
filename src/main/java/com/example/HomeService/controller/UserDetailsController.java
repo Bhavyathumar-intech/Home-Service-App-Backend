@@ -45,6 +45,9 @@ public class UserDetailsController {
             @RequestPart("UserDetailsRegisterDto") String userDetailsRegisterDtoString,
             @RequestPart("imageFile") MultipartFile imageFile) throws IOException {
 
+        if (userDetailsRegisterDtoString == null || userDetailsRegisterDtoString.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("User details data cannot be null or empty.");
+        }
         // Convert JSON String to UserDetailsRegisterDto Object
         ObjectMapper objectMapper = new ObjectMapper();
         UserDetailsRegisterDto userDetailsRegisterDto = objectMapper.readValue(userDetailsRegisterDtoString, UserDetailsRegisterDto.class);
